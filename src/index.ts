@@ -11,6 +11,7 @@ import { HTTPSTATUS } from "./config/http.config"
 import helmet from "helmet";
 import compression from "compression"
 import morgan from "morgan";
+import authRoutes from "./modules/auth/auth.route"
 
 
 
@@ -39,10 +40,10 @@ app.get(
         });
     })
 )
+app.use(`${BASE_PATH}/auth`, authRoutes)
 
 app.use(errorHandler)
 
 app.listen(config.PORT,async () => {
     console.log(`Server is running on port ${config.PORT}`);
-    // await connectDatabase();
 });
