@@ -12,3 +12,8 @@ export interface RegisterDto {
     user_type: "STUDENT" | "STAFF" | "DEAN" | "NON-STAFF" | "HA";
     role?: "STUDENT" | "STAFF" | "DEAN" | "HA";
 }
+export interface LoginDto{
+    email: string,
+    password: string,
+    userAgent?: string
+}

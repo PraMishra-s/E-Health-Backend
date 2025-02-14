@@ -4,7 +4,6 @@ import cookieParser from "cookie-parser"
 import cors from "cors"
 import { config } from "./config/app.config"
 import { Request, Response } from "express"
-import passport from "passport"
 import { asyncHandler } from "./middlewares/asyncHandler"
 import { errorHandler } from "./middlewares/errorHandler"
 import { HTTPSTATUS } from "./config/http.config"
@@ -12,6 +11,7 @@ import helmet from "helmet";
 import compression from "compression"
 import morgan from "morgan";
 import authRoutes from "./modules/auth/auth.route"
+import passport from "./middlewares/passport"
 
 
 
@@ -27,7 +27,7 @@ app.use(cors({
 }))
 app.use(helmet())
 app.use(cookieParser())
-// app.use(passport.initialize())
+app.use(passport.initialize())
 app.use(compression())
 
 

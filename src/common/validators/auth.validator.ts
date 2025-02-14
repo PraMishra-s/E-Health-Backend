@@ -33,3 +33,9 @@ export const registrationSchema = z.object({
     message: "Password does not match",
     path: ["confirmPassword"],
 });
+
+export const loginSchema = z.object({
+    email: emailSchema,
+    password: passwordSchema,
+    userAgent: z.string().optional() 
+})
