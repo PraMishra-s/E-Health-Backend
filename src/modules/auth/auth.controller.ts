@@ -1,6 +1,6 @@
-import { NotFoundException } from "../../common/utils/catch-errors";
-import { clearAuthenticationCookies, setAuthenticationCookies } from "../../common/utils/cookies";
-import { loginSchema, registrationSchema, verificationEmailSchema } from "../../common/validators/auth.validator";
+import { NotFoundException, UnauthorizedException } from "../../common/utils/catch-errors";
+import { clearAuthenticationCookies, getAccessTokenCookieOptions, getRefreshTokenCookieOptions, setAuthenticationCookies } from "../../common/utils/cookies";
+import { emailSchema, loginSchema, registrationSchema, resetPasswordSchema, verificationEmailSchema } from "../../common/validators/auth.validator";
 import { HTTPSTATUS } from "../../config/http.config";
 import { asyncHandler } from "../../middlewares/asyncHandler";
 import { AuthService} from "./auth.service";
@@ -47,6 +47,48 @@ export class AuthController{
             })
         }
     );
+    public forgotPassword = asyncHandler(
+    async (req: Request, res: Response):Promise<any> =>{
+        const email = emailSchema.parse(req.body.email)
+        await this.authService.forgotPassword(email)
+        return res.status(HTTPSTATUS.OK).json({
+            message: "Password reset Email send"
+        })
+    }
+    );
+    public resetPassword = asyncHandler(
+        async (req: Request, res: Response):Promise<any> =>{
+            const body = resetPasswordSchema.parse(req.body)
+            await this.authService.resetPassword(body);
+            return clearAuthenticationCookies(res).status(HTTPSTATUS.OK).json({
+                message: "Reset Password Successfully"
+            })
+        }
+    );
+    public refreshToken = asyncHandler(
+        async (req: Request, res: Response):Promise<any> =>{
+            const refreshToken = req.cookies.refreshToken as string | undefined
+            if(!refreshToken){
+                throw new UnauthorizedException("Missing refresh Token")
+            }
+            const { accessToken, newRefreshToken } = await this.authService.refreshToken(refreshToken)
+
+            if (newRefreshToken){
+                res.cookie(
+                    "refreshToken",
+                    newRefreshToken,
+                    getRefreshTokenCookieOptions()
+                )
+            }
+            return res
+            .status(HTTPSTATUS.OK)
+            .cookie("accessToken", accessToken, getAccessTokenCookieOptions())
+            .json({
+                    message: "Refresh access token successful"
+                })
+        }
+    );
+
      public logout = asyncHandler(
         async (req: Request, res: Response):Promise<any> =>{
             const sessionId = req.sessionId

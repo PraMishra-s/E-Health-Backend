@@ -1,16 +1,18 @@
 import { eq } from "drizzle-orm";
-import { LoginDto, RegisterDto } from "../../common/interface/auth.interface";
+import { LoginDto, RegisterDto, resetPasswordDto } from "../../common/interface/auth.interface";
 import { db } from "../../database/drizzle";
 import { login, users, sessions } from "../../database/schema/schema";
-import { BadRequestException, InternalServerException } from "../../common/utils/catch-errors";
+import { BadRequestException, InternalServerException, NotFoundException, UnauthorizedException } from "../../common/utils/catch-errors";
 import { ErrorCode } from "../../common/enums/error-code.enum";
 import { compareValue, hashValue } from "../../common/utils/bcrypt";
-import { refreshTokenSignOptions, signJwtToken } from "../../common/utils/jwt";
+import { refreshTokenSignOptions, RefreshTPayload, signJwtToken, verifyJwtToken } from "../../common/utils/jwt";
 import { generateUniqueCode } from "../../common/utils/uuid";
 import { deleteKey, getKey, setKeyWithTTL } from "../../common/utils/redis";
 import { sendEmail } from "../../mailer/mailer";
-import { verifyEmailTemplate } from "../../mailer/template/template";
+import { passwordResetTemplate, verifyEmailTemplate } from "../../mailer/template/template";
 import { config } from "../../config/app.config";
+import redis from "../../common/service/redis.service";
+import { anHourFromNow, calculateExpirationDate, ONE_DAY_IN_MS } from "../../common/utils/date-time";
 
 export class AuthService{
     public async register(registerData: RegisterDto) {
@@ -149,7 +151,6 @@ export class AuthService{
     public async verifyEmail(code: string){
         const redisKey = `verification:code:${code}`;
         const userId = await getKey(redisKey);
-        console.log(userId)
     
         if (!userId) {
             throw new BadRequestException(
@@ -169,6 +170,130 @@ export class AuthService{
         throw new InternalServerException(error,
                ErrorCode.VERIFICATION_ERROR)
        }
+    }
+    public async forgotPassword(email: string) {
+        const user = await db.select().from(login).where(eq(login.email, email));
+
+        if (user.length === 0) {
+            throw new NotFoundException("User not found");
+        }
+        const userId = user[0].user_id;
+
+        const rateLimitKey = `password-reset:rate-limit:${userId}`;
+
+        const requestCount = await redis.incr(rateLimitKey); 
+
+        if (requestCount === 1) {
+            await redis.expire(rateLimitKey, 180); 
+        } else if (requestCount > 2) {
+            throw new BadRequestException(
+                "Too many requests, try again later",
+                ErrorCode.AUTH_TOO_MANY_ATTEMPTS
+            );
+        }
+
+        const expiresAt = anHourFromNow();
+        const resetCode = generateUniqueCode();
+        const redisKey = `password-reset:code:${resetCode}`;
+        await redis.set(redisKey, userId, { ex: 240 }); 
+
+        // Step 4: Send the reset email
+        const resetLink = `${config.APP_ORIGIN}/reset-password?code=${resetCode}&exp=${expiresAt.getTime()}`;
+        const { data, error } = await sendEmail({
+            to: email,
+            ...passwordResetTemplate(resetLink)
+        });
+
+        if (!data) {
+            throw new InternalServerException(`${error?.name} - ${error?.message}`);
+        }
+
+        return {
+            url: resetLink,
+            emailId: data.response
+        };
+    }
+    public async resetPassword({ password, verificationCode }: resetPasswordDto) {
+        // Step 1: Retrieve userId from Redis using the code
+        const redisKey = `password-reset:code:${verificationCode}`;
+        const userId = await getKey(redisKey);
+
+        if (!userId) {
+            throw new NotFoundException("Invalid or expired Verification Code");
+        }
+
+        try {
+            const hashedPassword = await hashValue(password);
+
+            const [updatedUser] = await db.update(login)
+                .set({ password: hashedPassword })
+                .where(eq(login.user_id, userId as string))
+                .returning();
+
+            if (!updatedUser) {
+                throw new BadRequestException("Failed to reset password");
+            }
+
+            await deleteKey(redisKey);
+
+            await db.delete(sessions).where(eq(sessions.user_id, userId as string));
+
+            return {
+                message: "Password reset successful",
+            };
+        } catch (error: any) {
+            throw new InternalServerException(error, ErrorCode.AUTH_PASSOWORD_WRONG);
+        }
+    }
+    public async  refreshToken(refreshToken: string) {
+        const { payload } = verifyJwtToken<RefreshTPayload>(refreshToken, {
+            secret: refreshTokenSignOptions.secret
+        });
+
+        if (!payload) {
+            throw new UnauthorizedException("Invalid refresh token");
+        }
+
+        const [session] = await db.select().from(sessions).where(eq(sessions.id, payload.sessionId));
+
+        if (!session) {
+            throw new UnauthorizedException("Session does not exist");
+        }
+
+        const now = Date.now();
+        const sessionExpiry = new Date(session.expired_at).getTime();
+
+
+        if (sessionExpiry <= now) {
+            throw new UnauthorizedException("Session expired");
+        }
+
+
+        const sessionRequiresRefresh = sessionExpiry - now <= ONE_DAY_IN_MS;
+        let newRefreshToken: string | undefined;
+
+        if (sessionRequiresRefresh) {
+            const newExpiry = calculateExpirationDate(config.JWT.REFRESH_EXPIRES_IN);
+
+            await db.update(sessions)
+                .set({ expired_at: newExpiry })
+                .where(eq(sessions.id, session.id));
+
+            newRefreshToken = signJwtToken(
+                { sessionId: session.id },
+                refreshTokenSignOptions
+            );
+        }
+
+        const accessToken = signJwtToken({
+            userId: session.user_id,
+            sessionId: session.id
+        });
+
+        return {
+            accessToken,
+            newRefreshToken
+        };
     }
     public async logout(sessionId: string){
         return await db.delete(sessions).where(eq(sessions.id, sessionId))

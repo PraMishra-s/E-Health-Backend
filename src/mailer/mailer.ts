@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import { config } from "../config/app.config";
 
+// Create a transporter using nodemailer with SMTP credentials
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     host: config.NODE_MAILER.SMTP_HOST,
@@ -12,6 +13,7 @@ const transporter = nodemailer.createTransport({
     }
 } as nodemailer.TransportOptions);
 
+// Updated sendEmail function to return { data, error }
 export const sendEmail = async ({
     to,
     subject,
@@ -25,11 +27,20 @@ export const sendEmail = async ({
     html: string;
     from?: string;
 }) => {
-    await transporter.sendMail({
-        from,
-        to: Array.isArray(to) ? to.join(", ") : to,
-        subject,
-        text,
-        html
-    });
+    try {
+        // Send the email using the transporter
+        const info = await transporter.sendMail({
+            from,
+            to: Array.isArray(to) ? to.join(", ") : to,
+            subject,
+            text,
+            html
+        });
+
+        // Return success response with email info
+        return { data: info, error: null };
+    } catch (error: any) {
+        // Return error response
+        return { data: null, error };
+    }
 };
