@@ -3,6 +3,7 @@ import { z } from "zod";
 
 export const emailSchema = z.string().trim().email().min(1).max(255).regex(/^[a-zA-Z0-9._%+-]+@rub\.edu\.bt$/, "Email must be from @rub.edu.bt domain")
 export const passwordSchema = z.string().trim().min(6).max(255)
+export const verificationCodeSchema = z.string().trim().min(1).max(25)
 
 export const genderEnum = z.enum(["MALE", "FEMALE", "OTHERS"]);
 export const bloodTypeEnum = z.enum(["O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"]);
@@ -38,4 +39,8 @@ export const loginSchema = z.object({
     email: emailSchema,
     password: passwordSchema,
     userAgent: z.string().optional() 
+})
+
+export const verificationEmailSchema = z.object({
+    code: verificationCodeSchema
 })

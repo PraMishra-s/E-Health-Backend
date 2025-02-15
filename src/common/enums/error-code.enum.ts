@@ -12,6 +12,8 @@ const enum ErrorCode {
     // Access Control Errors
     ACCESS_FORBIDDEN = "ACCESS_FORBIDDEN",
     ACCESS_UNAUTHORIZED = "ACCESS_UNAUTHORIZED",
+
+    FAILED_SESSSION = "FAILED_TO_CREATE_SESSION",
   
     // Validation and Resource Errors
     VALIDATION_ERROR = "VALIDATION_ERROR",

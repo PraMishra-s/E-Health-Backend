@@ -1,4 +1,4 @@
-import { boolean, char, pgEnum, pgTable, text, uuid, varchar } from "drizzle-orm/pg-core";
+import { boolean, char, pgEnum, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 
 export const programmes = pgTable('programmes',{
@@ -32,3 +32,11 @@ export const login = pgTable("login", {
     role: ROLE_ENUM('role'),
     verified: boolean().default(false)
 })
+
+export const sessions = pgTable("sessions", {
+    id: uuid("id").primaryKey().defaultRandom(),
+    user_id: uuid("user_id").references(() => users.id).notNull(), 
+    user_agent: varchar("user_agent", { length: 255 }).notNull(),
+    created_at: timestamp("created_at").defaultNow().notNull(),
+    expired_at: timestamp("expired_at").notNull()
+});

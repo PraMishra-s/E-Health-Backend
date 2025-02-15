@@ -1,11 +1,16 @@
 import { eq } from "drizzle-orm";
 import { LoginDto, RegisterDto } from "../../common/interface/auth.interface";
 import { db } from "../../database/drizzle";
-import { login, users } from "../../database/schema/schema";
+import { login, users, sessions } from "../../database/schema/schema";
 import { BadRequestException, InternalServerException } from "../../common/utils/catch-errors";
 import { ErrorCode } from "../../common/enums/error-code.enum";
 import { compareValue, hashValue } from "../../common/utils/bcrypt";
 import { refreshTokenSignOptions, signJwtToken } from "../../common/utils/jwt";
+import { generateUniqueCode } from "../../common/utils/uuid";
+import { deleteKey, getKey, setKeyWithTTL } from "../../common/utils/redis";
+import { sendEmail } from "../../mailer/mailer";
+import { verifyEmailTemplate } from "../../mailer/template/template";
+import { config } from "../../config/app.config";
 
 export class AuthService{
     public async register(registerData: RegisterDto) {
@@ -33,7 +38,7 @@ export class AuthService{
         try {
             // Create new user in the users table
             const [newUser] = await db.insert(users).values({
-                id: crypto.randomUUID(), // Generate UUID for user
+                id: userId, // Generate UUID for user
                 student_id: registerData.student_id || null,
                 name: registerData.name,
                 gender: registerData.gender,
@@ -57,6 +62,19 @@ export class AuthService{
                 });
             }
             }
+        const code = generateUniqueCode();
+        // Build a Redis key using the userId
+        const redisKey = `verification:code:${code}`;
+        
+        await setKeyWithTTL(redisKey, userId, 2700);
+
+        // Construct the verification URL
+        const verificationUrl = `${config.APP_ORIGIN}/confirm-account?code=${code}`;
+        
+        await sendEmail({
+            to: registerData.email!,
+            ...verifyEmailTemplate(verificationUrl)
+        });
 
             return { user: newUser };
         } catch (error: any) {
@@ -70,7 +88,7 @@ export class AuthService{
     public async login(loginData: LoginDto){
         const { email, password, userAgent } = loginData
         const user = await db.select().from(login).where(eq(login.email, email))
-        if(!user){
+        if(user.length === 0){
             throw new BadRequestException(
             "Invalid email or password Provided",
             ErrorCode.AUTH_USER_NOT_FOUND
@@ -89,22 +107,71 @@ export class AuthService{
                 "Invalid email or password Provided",
                 ErrorCode.AUTH_USER_NOT_FOUND
             )
+        }  
+        let sessionId = user[0].user_id
+        try {
+            const [session] = await db.insert(sessions).values({
+                user_id: user[0].user_id,
+                user_agent: userAgent || "Unknown",
+                expired_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7) 
+            }).returning();
+                sessionId = session.id; 
+        } catch (error: any) {
+            throw new InternalServerException(
+                "Failed to insert in the session table",
+                ErrorCode.FAILED_SESSSION
+            )
         }
+
         const accessToken = signJwtToken({
-            userId: user[0].id,
-            sessionId: user[0].id
+            userId: user[0].user_id,
+            sessionId
         })
         const refreshToken = signJwtToken(
         {
-            sessionId: user[0].id
+            sessionId
         },
         refreshTokenSignOptions
         )
+        
         return {
-            user,
+            user: {
+                id: user[0].id,
+                email: user[0].email,
+                role: user[0].role,
+                verified: user[0].verified
+            },
             accessToken,
             refreshToken,
         }
 
     }
+    public async verifyEmail(code: string){
+        const redisKey = `verification:code:${code}`;
+        const userId = await getKey(redisKey);
+        console.log(userId)
+    
+        if (!userId) {
+            throw new BadRequestException(
+                "Invalid or expired verification code", 
+                ErrorCode.VERIFICATION_ERROR);
+        }
+
+       try {
+         // Update the login record to mark the email as verified
+        await db.update(login)
+                .set({ verified: true })
+                .where(eq(login.user_id, userId as string));
+
+        // Remove the verification code from Redis now that it's been used
+        await deleteKey(redisKey); 
+       } catch (error: any) {
+        throw new InternalServerException(error,
+               ErrorCode.VERIFICATION_ERROR)
+       }
+    }
+    public async logout(sessionId: string){
+        return await db.delete(sessions).where(eq(sessions.id, sessionId))
+    }
+
 }
