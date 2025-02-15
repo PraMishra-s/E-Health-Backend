@@ -5,8 +5,8 @@ import { Request } from "express";
 declare global {
   namespace Express {
     interface Request {
-      sessionId?: string;  // For JWT session tracking
-      user?: InferSelectModel<typeof users>; // Attach user details after authentication
+      sessionId?: string;  
+      user?: InferSelectModel<typeof users> | null; // Ensure it's always defined
     }
   }
 }

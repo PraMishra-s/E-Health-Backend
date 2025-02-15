@@ -159,12 +159,12 @@ export class AuthService{
         }
 
        try {
-         // Update the login record to mark the email as verified
+
         await db.update(login)
                 .set({ verified: true })
                 .where(eq(login.user_id, userId as string));
 
-        // Remove the verification code from Redis now that it's been used
+
         await deleteKey(redisKey); 
        } catch (error: any) {
         throw new InternalServerException(error,
@@ -214,7 +214,7 @@ export class AuthService{
         };
     }
     public async resetPassword({ password, verificationCode }: resetPasswordDto) {
-        // Step 1: Retrieve userId from Redis using the code
+
         const redisKey = `password-reset:code:${verificationCode}`;
         const userId = await getKey(redisKey);
 

@@ -12,6 +12,8 @@ import compression from "compression"
 import morgan from "morgan";
 import authRoutes from "./modules/auth/auth.route"
 import passport from "./middlewares/passport"
+import { authenticateJWT } from "./common/strageties/jwt.strategy"
+import sessionRoutes from "./modules/session/session.route"
 
 
 
@@ -41,6 +43,7 @@ app.get(
     })
 )
 app.use(`${BASE_PATH}/auth`, authRoutes)
+app.use(`${BASE_PATH}/session`, authenticateJWT, sessionRoutes)
 
 app.use(errorHandler)
 
