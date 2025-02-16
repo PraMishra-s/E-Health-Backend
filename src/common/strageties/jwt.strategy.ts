@@ -33,19 +33,21 @@ const options : StrategyOptionsWithRequest = {
     passReqToCallback: true
 }
 
-export const setupJwtStrategy = (passport: PassportStatic) =>{
+export const setupJwtStrategy = (passport: PassportStatic) => {
     passport.use(
-        new JwtStrategy(options, async(req, payload: JwtPayload, done)=>{
+        new JwtStrategy(options, async (req, payload: JwtPayload, done) => {
             try {
-                const user = await db.select().from(users).where(eq(users.id, payload.userId))
-                if(!user){
-                    return done(null, false)
+                const [user] = await db.select().from(users).where(eq(users.id, payload.userId));
+                if (!user) {
+                return done(null, false);
                 }
                 req.sessionId = payload.sessionId;
-                return done(null, user)
+                req.user = user; // This should be correctly typed as `User`
+                return done(null, user);
             } catch (error) {
-                return done(null, false)
+                return done(null, false);
             }
-        }))
-}
+        })
+    );
+};
 export const authenticateJWT = passport.authenticate("jwt", { session: false });

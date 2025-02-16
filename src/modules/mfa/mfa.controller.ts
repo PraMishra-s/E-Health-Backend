@@ -1,3 +1,4 @@
+import { User } from "../../common/@types";
 import { UnauthorizedException } from "../../common/utils/catch-errors";
 import { setAuthenticationCookies } from "../../common/utils/cookies";
 import { verifyMFAForLoginSchema } from "../../common/validators/mfa.validator";
@@ -13,14 +14,14 @@ export class MFAController{
         this.mfaService = mfaService
     }
     public invokeMFASetup = asyncHandler(async (req: Request, res: Response): Promise<any> => {
-        const currentSessionId = req.sessionId;
+        const userId = (req.user as User)?.id;
         
-        if (!currentSessionId) {
+        if (!userId) {
             throw new UnauthorizedException("Session not found. Please log in.");
         }
         
 
-       const user =  await this.mfaService.invokeMFASetup(currentSessionId);
+       const user =  await this.mfaService.invokeMFASetup(userId);
         
         return res.status(HTTPSTATUS.CREATED).json({
             message: "MFA has been enabled successfully.",
@@ -45,13 +46,13 @@ export class MFAController{
     });
 
     public revokeMFA = asyncHandler(async (req: Request, res: Response) => {
-        const currentSessionId = req.sessionId;
+        const userId = (req.user as User)?.id;
 
-        if (!currentSessionId) {
+        if (!userId) {
             throw new UnauthorizedException("Session ID not found. Please log in.");
         }
 
-        await this.mfaService.revokeMFA(currentSessionId);
+        await this.mfaService.revokeMFA(userId);
 
         return res.status(HTTPSTATUS.OK).json({
             message: "MFA successfully disabled.",

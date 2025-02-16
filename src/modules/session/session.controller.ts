@@ -5,6 +5,8 @@ import { asyncHandler } from "../../middlewares/asyncHandler";
 import { SessionService } from "./session.service";
 import { Request, Response } from "express";
 import { clearAuthenticationCookies } from "../../common/utils/cookies";
+import { User } from "../../common/@types";
+import { ErrorCode } from "../../common/enums/error-code.enum";
 
 export class SessionController {
     private sessionService: SessionService;
@@ -15,13 +17,17 @@ export class SessionController {
 
     // 🔹 Fetch all sessions for the authenticated user
     public getAllSession = asyncHandler(async (req: Request, res: Response) => {
+        const userId = (req.user as User)?.id;
         const currentSessionId = req.sessionId;
 
         if (!currentSessionId) {
-            throw new UnauthorizedException("Session ID not found. Please log in.");
+            throw new UnauthorizedException(
+                "Session ID not found. Please log in.",
+                ErrorCode.ACCESS_UNAUTHORIZED
+            );
         }
 
-        const sessions = await this.sessionService.getAllSessionsBySessionId(currentSessionId);
+        const sessions = await this.sessionService.getAllSessionsBySessionId(userId, currentSessionId);
 
         return res.status(HTTPSTATUS.OK).json({
             message: "Retrieved all sessions successfully",
@@ -33,7 +39,10 @@ export class SessionController {
         const sessionId = req.sessionId;
 
         if (!sessionId) {
-            throw new NotFoundException("Session ID not Found. Please Log in");
+            throw new NotFoundException(
+                "Session ID not Found. Please Log in",
+                ErrorCode.ACCESS_UNAUTHORIZED
+            );
         }
 
         const { user } = await this.sessionService.getSessionById(sessionId);
@@ -46,13 +55,24 @@ export class SessionController {
 
     public deleteSession = asyncHandler(async (req: Request, res: Response) => {
         const sessionId = z.string().parse(req.params.id);
-        const currentSessionId = req.sessionId;
+        const userId = (req.user as User)?.id;
+        const currentSessionId = req.sessionId
+  
 
-        if (!currentSessionId) {
-            throw new UnauthorizedException("Session not found.");
+        if (!userId) {
+            throw new UnauthorizedException(
+                "Session not found.",
+                ErrorCode.ACCESS_UNAUTHORIZED
+            );
         }
 
-        await this.sessionService.deleteSession(sessionId, currentSessionId);
+        await this.sessionService.deleteSession(sessionId, userId);
+
+        if(sessionId === currentSessionId){
+            return clearAuthenticationCookies(res).status(HTTPSTATUS.OK).json({
+                message: `Session removed successfully and User logout.`,
+        })
+        }
 
         return res.status(HTTPSTATUS.OK).json({
             message: "Session removed successfully",
@@ -60,15 +80,16 @@ export class SessionController {
     });
 
    public deleteAllSessions = asyncHandler(async (req: Request, res: Response): Promise<any> => {
-    const currentSessionId = req.sessionId;
-    if (!currentSessionId) {
-      throw new UnauthorizedException("Session not found. Please log in.");
+    const userId = (req.user as User)?.id;;
+    if (!userId) {
+      throw new UnauthorizedException(
+        "Session not found. Please log in.",
+        ErrorCode.ACCESS_UNAUTHORIZED
+    );
     }
 
-    const response = await this.sessionService.deleteAllSessions(currentSessionId);
-    return clearAuthenticationCookies(res).status(HTTPSTATUS.OK).json({
-                    message: `User logout successfully from all devices.`,
-                })
+    const response = await this.sessionService.deleteAllSessions(userId);
+    
   });
 
 }

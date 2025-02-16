@@ -8,43 +8,14 @@ import { refreshTokenSignOptions, signJwtToken } from "../../common/utils/jwt";
 
 export class MFAService{
 
-    public async getUserIdBySessionId(sessionId: string): Promise<string> {
-        // Try to fetch from Redis first
-        const sessionKey = `session:${sessionId}`;
-        const cachedSession = await redis.get(sessionKey);
-        if (cachedSession) {
-            try {
-            const sessionObj = typeof cachedSession === "string" ? JSON.parse(cachedSession) : cachedSession;
-            if (sessionObj.userId) {
-                return sessionObj.userId;
-            }
-            } catch (error) {
-            console.error("Error parsing Redis session data:", error);
-            }
-        }
-        
-        // Fallback: Query the DB for the session record
-        const result = await db
-            .select({ user_id: sessions.user_id })
-            .from(sessions)
-            .where(eq(sessions.id, sessionId))
-            .limit(1);
-        
-        if (!result.length) {
-            throw new NotFoundException("Session not found");
-        }
-        
-        return result[0].user_id;
-    }
+    
 
-    public async invokeMFASetup(currentSessionId: string) {
-    // Retrieve the user ID using the current session ID
-        const userId = await this.getUserIdBySessionId(currentSessionId);
+    public async invokeMFASetup(userId: string) {
+
         if (!userId) {
             throw new UnauthorizedException("User not found for the session.");
         }
         
-        // Update the login record to set MFA as enabled
         const updatedUser = await db
             .update(login)
             .set({ mfa_required: true })
@@ -141,21 +112,8 @@ export class MFAService{
             refreshToken,
         };
     }
-   public async revokeMFA(sessionId: string) {
-        // Retrieve the user ID from session
-        const userSession = await db
-            .select({ user_id: sessions.user_id })
-            .from(sessions)
-            .where(eq(sessions.id, sessionId))
-            .limit(1);
+   public async revokeMFA(userId: string) {
 
-        if (!userSession.length) {
-            throw new NotFoundException("Session not found.");
-        }
-
-        const userId = userSession[0].user_id;
-
-        // Update MFA status in login table
         const updatedUser = await db
             .update(login)
             .set({ mfa_required: false })

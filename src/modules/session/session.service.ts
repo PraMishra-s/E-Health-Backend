@@ -7,29 +7,8 @@ import { ErrorCode } from "../../common/enums/error-code.enum";
 
 export class SessionService {
 
-    public async getAllSessionsBySessionId(sessionId: string) {
+    public async getAllSessionsBySessionId(userId: string, sessionId: string) {
         try {
-            const sessionKey = `session:${sessionId}`;
-            const cachedSession = await redis.get(sessionKey) as any;
-
-            let userId: string;
-
-            if (cachedSession) {
-                userId = typeof cachedSession === "string" ? JSON.parse(cachedSession).userId : cachedSession.userId;
-            } else {
-                const userSession = await db
-                    .select({ user_id: sessions.user_id })
-                    .from(sessions)
-                    .where(eq(sessions.id, sessionId))
-                    .limit(1);
-
-                if (!userSession.length) {
-                    throw new NotFoundException("Session not found.");
-                }
-
-                userId = userSession[0].user_id;
-            }
-
             const sessionRecords = await db
                 .select()
                 .from(sessions)
@@ -89,83 +68,51 @@ export class SessionService {
     }
 
  
-    public async deleteSession(sessionId: string, currentSessionId: string) {
-    try {
-        const sessionKey = `session:${sessionId}`;
-        const redisSession = await redis.get(sessionKey);
+    public async deleteSession(sessionId: string, userId: string) { 
+        try {
+            const sessionKey = `session:${sessionId}`;
+            const redisSession = await redis.get(sessionKey);
 
-        if (redisSession) {
-            await redis.del(sessionKey);
-        }
+            // Delete session from Redis if it exists
+            if (redisSession) {
+                await redis.del(sessionKey);
+            }
 
-        const session = await db
-            .select({ user_id: sessions.user_id })
-            .from(sessions)
-            .where(eq(sessions.id, sessionId))
-            .limit(1);
+            // Ensure the session exists and belongs to the user
+            const session = await db
+                .select({ user_id: sessions.user_id })
+                .from(sessions)
+                .where(eq(sessions.id, sessionId))
+                .limit(1);
 
-        if (!session.length) {
-            throw new NotFoundException(
-                "Session not found or already deleted.",
-                ErrorCode.AUTH_NOT_FOUND
-            );
-        }
+            if (!session.length || session[0].user_id !== userId) {
+                throw new NotFoundException(
+                    "Session not found or unauthorized to delete.",
+                    ErrorCode.AUTH_UNAUTHORIZED_ACCESS
+                );
+            }
+            
+            const deletedSession = await db
+                .delete(sessions)
+                .where(eq(sessions.id, sessionId))
+                .returning();
 
-        const userId = session[0].user_id;
-
-        const deletedSession = await db
-            .delete(sessions)
-            .where(and(eq(sessions.id, sessionId), eq(sessions.user_id, userId)))
-            .returning();
-
-        if (!deletedSession.length) {
-            throw new NotFoundException(
-                "Session not found or unauthorized to delete.",
-                ErrorCode.AUTH_UNAUTHORIZED_ACCESS
-            );
-        }
-
+            if (!deletedSession.length) {
+                throw new NotFoundException(
+                    "Session already deleted.",
+                    ErrorCode.AUTH_NOT_FOUND
+                );
+            }
         } catch (error) {
             console.error("Error deleting session:", error);
             throw new InternalServerException("Failed to delete session.");
         }
     }
-    public async getUserIdBySessionId(sessionId: string): Promise<string> {
-        // First, try to get the session data from Redis
-        const redisKey = `session:${sessionId}`;
-        const redisData = await redis.get(redisKey);
-        if (redisData) {
-            try {
-            const sessionObj = typeof redisData === "string" ? JSON.parse(redisData) : redisData;
-            if (sessionObj.userId) {
-                return sessionObj.userId;
-            }
-            } catch (error) {
-            console.error("Error parsing Redis session data:", error);
-            }
-        }
-
-        // Fallback: query PostgreSQL
-        const result = await db
-            .select({ user_id: sessions.user_id })
-            .from(sessions)
-            .where(eq(sessions.id, sessionId))
-            .limit(1);
-
-        if (!result.length) {
-            throw new NotFoundException("Session not found");
-        }
-
-        return result[0].user_id;
-        }
 
     
+    public async deleteAllSessions(userId: string) {
+ 
 
-    public async deleteAllSessions(currentSessionId: string) {
-    // Retrieve the userId associated with the current session
-    const userId = await this.getUserIdBySessionId(currentSessionId);
-
-    // Fetch all session IDs for this user from PostgreSQL
     const userSessions = await db
         .select({ id: sessions.id })
         .from(sessions)

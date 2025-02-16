@@ -15,6 +15,7 @@ import passport from "./middlewares/passport"
 import { authenticateJWT } from "./common/strageties/jwt.strategy"
 import sessionRoutes from "./modules/session/session.route"
 import mfaRoutes from "./modules/mfa/mfa.routes"
+import userRoutes from "./modules/user/user.route"
 
 
 
@@ -47,6 +48,7 @@ app.get(
 app.use(`${BASE_PATH}/auth`, authRoutes)
 app.use(`${BASE_PATH}/session`, authenticateJWT, sessionRoutes)
 app.use(`${BASE_PATH}/mfa`, mfaRoutes)
+app.use(`${BASE_PATH}/user`, userRoutes)
 
 app.use(errorHandler)
 
