@@ -1,0 +1,1 @@
+ALTER TABLE "login" ADD COLUMN "mfa_required" boolean DEFAULT false;

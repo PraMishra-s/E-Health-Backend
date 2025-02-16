@@ -6,10 +6,10 @@ import { BadRequestException, InternalServerException, NotFoundException, Unauth
 import { ErrorCode } from "../../common/enums/error-code.enum";
 import { compareValue, hashValue } from "../../common/utils/bcrypt";
 import { refreshTokenSignOptions, RefreshTPayload, signJwtToken, verifyJwtToken } from "../../common/utils/jwt";
-import { generateUniqueCode } from "../../common/utils/uuid";
+import { generateOTP, generateUniqueCode } from "../../common/utils/uuid";
 import { deleteKey, getKey, setKeyWithTTL } from "../../common/utils/redis";
 import { sendEmail } from "../../mailer/mailer";
-import { passwordResetTemplate, verifyEmailTemplate } from "../../mailer/template/template";
+import { mfaOtpTemplate, passwordResetTemplate, verifyEmailTemplate } from "../../mailer/template/template";
 import { config } from "../../config/app.config";
 import redis from "../../common/service/redis.service";
 import { anHourFromNow, calculateExpirationDate, ONE_DAY_IN_MS } from "../../common/utils/date-time";
@@ -38,9 +38,8 @@ export class AuthService{
         const userId = crypto.randomUUID(); // Generate UUID once
 
         try {
-            // Create new user in the users table
             const [newUser] = await db.insert(users).values({
-                id: userId, // Generate UUID for user
+                id: userId, 
                 student_id: registerData.student_id || null,
                 name: registerData.name,
                 gender: registerData.gender,
@@ -108,6 +107,21 @@ export class AuthService{
                 "Invalid email or password Provided",
                 ErrorCode.AUTH_USER_NOT_FOUND
             )
+        }
+        if(user[0].mfa_required){
+            const otp = generateOTP()
+            const otpKey = `mfa:otp:${user[0].email}`
+            await setKeyWithTTL(otpKey, otp, 300)
+            await sendEmail({
+                to: user[0].email,
+                ...mfaOtpTemplate(otp)
+            })
+            return {
+                user: null,
+                accessToken: null,
+                refreshToken: null,
+                mfaRequired: true
+            }
         }  
         let sessionId = user[0].user_id
         try {
@@ -154,6 +168,7 @@ export class AuthService{
             },
             accessToken,
             refreshToken,
+            mfaRequired: false
         }
 
     }

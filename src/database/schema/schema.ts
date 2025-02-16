@@ -30,7 +30,8 @@ export const login = pgTable("login", {
     email: varchar('email', {length: 255}).notNull().unique(),
     password: text().notNull(),
     role: ROLE_ENUM('role'),
-    verified: boolean().default(false)
+    verified: boolean().default(false),
+    mfa_required: boolean("mfa_required").default(false)
 })
 
 export const sessions = pgTable("sessions", {

@@ -6,7 +6,7 @@ declare global {
   namespace Express {
     interface Request {
       sessionId?: string;  
-      user?: InferSelectModel<typeof users> | null; // Ensure it's always defined
+      user?: InferSelectModel<typeof users> | null; 
     }
   }
 }

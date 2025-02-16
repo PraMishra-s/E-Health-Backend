@@ -4,8 +4,8 @@ import { calculateExpirationDate } from "./date-time"
 
 type CookiesPayloadType = {
     res: Response,
-    accessToken: String,
-    refreshToken: String,
+    accessToken: String | null,
+    refreshToken: String | null,
 }
 
 const defaults: CookieOptions = {
