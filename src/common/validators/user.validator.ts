@@ -7,3 +7,8 @@ export const updateUserSchema = z.object({
     blood_type: z.enum(["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"]).optional(),
     department_id: z.string().optional(),
 });
+
+export const changePasswordSchema = z.object({
+    currentPassword: z.string().min(6, "Current password is required."),
+    newPassword: z.string().min(8, "New password must be at least 8 characters."),
+});
