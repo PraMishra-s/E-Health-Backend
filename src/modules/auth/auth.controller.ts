@@ -47,6 +47,16 @@ export class AuthController{
             })
         }
     );
+    public resendVerifyEmail = asyncHandler(async (req: Request, res: Response) => {
+        const email = emailSchema.parse(req.body.email);
+
+        await this.authService.resendVerificationEmail( email);
+
+        return res.status(HTTPSTATUS.OK).json({
+            message: "A new verification email has been sent to your inbox.",
+        });
+    });
+
     public forgotPassword = asyncHandler(
     async (req: Request, res: Response):Promise<any> =>{
         const email = emailSchema.parse(req.body.email)

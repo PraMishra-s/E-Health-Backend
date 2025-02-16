@@ -51,7 +51,6 @@ export class AuthService{
                 contact_number: registerData.contact_number
             }).returning();
 
-            // If user has email & password, create login entry
         if(newUser){
             if (registerData.email && hashedPassword) {
                 await db.insert(login).values({
@@ -118,6 +117,16 @@ export class AuthService{
                 expired_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7) 
             }).returning();
                 sessionId = session.id; 
+                const sessionKey = `session:${sessionId}`;
+                const sessionData = {
+                    id: sessionId,
+                    userId: user[0].user_id,
+                    userAgent,
+                    createdAt: session.created_at,
+                    expiredAt: session.expired_at, // 7 days
+                };
+
+                await redis.set(sessionKey, JSON.stringify(sessionData), { ex: 60 * 60 * 24 * 7 });
         } catch (error: any) {
             throw new InternalServerException(
                 "Failed to insert in the session table",
@@ -138,7 +147,7 @@ export class AuthService{
         
         return {
             user: {
-                id: user[0].id,
+                id: user[0].user_id,
                 email: user[0].email,
                 role: user[0].role,
                 verified: user[0].verified
@@ -171,6 +180,46 @@ export class AuthService{
                ErrorCode.VERIFICATION_ERROR)
        }
     }
+
+    public async resendVerificationEmail(email: string) {
+       try {
+             const user = await db.select().from(login).where(eq(login.email, email));
+
+            if (!user.length) {
+                throw new NotFoundException("User not found.");
+            }
+
+            if (user[0].verified) {
+                throw new BadRequestException("This email is already verified.");
+            }
+            const redisKey = `verification:code:${user[0].user_id}`;
+            
+
+            await redis.del(redisKey);
+
+
+            const newCode = generateUniqueCode();
+            const newredisKey = `verification:code:${newCode}`;
+        
+            await setKeyWithTTL(newredisKey,  user[0].user_id, 2700);
+            
+
+            const verificationUrl = `${config.APP_ORIGIN}/confirm-account?code=${newCode}`;
+
+            await sendEmail({
+                to: email,
+                ...verifyEmailTemplate(verificationUrl),
+            });
+
+        return { message: "Verification email resent successfully." };
+       } catch (error) {
+        throw new InternalServerException(
+            "Failed to resend Verification Email",
+            ErrorCode.AUTH_USER_NOT_FOUND
+        )
+       }
+    }
+
     public async forgotPassword(email: string) {
         const user = await db.select().from(login).where(eq(login.email, email));
 
@@ -197,7 +246,7 @@ export class AuthService{
         const redisKey = `password-reset:code:${resetCode}`;
         await redis.set(redisKey, userId, { ex: 240 }); 
 
-        // Step 4: Send the reset email
+ 
         const resetLink = `${config.APP_ORIGIN}/reset-password?code=${resetCode}&exp=${expiresAt.getTime()}`;
         const { data, error } = await sendEmail({
             to: email,

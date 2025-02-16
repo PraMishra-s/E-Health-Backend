@@ -4,6 +4,7 @@ import { HTTPSTATUS } from "../../config/http.config";
 import { asyncHandler } from "../../middlewares/asyncHandler";
 import { SessionService } from "./session.service";
 import { Request, Response } from "express";
+import { clearAuthenticationCookies } from "../../common/utils/cookies";
 
 export class SessionController {
     private sessionService: SessionService;
@@ -57,4 +58,17 @@ export class SessionController {
             message: "Session removed successfully",
         });
     });
+
+   public deleteAllSessions = asyncHandler(async (req: Request, res: Response): Promise<any> => {
+    const currentSessionId = req.sessionId;
+    if (!currentSessionId) {
+      throw new UnauthorizedException("Session not found. Please log in.");
+    }
+
+    const response = await this.sessionService.deleteAllSessions(currentSessionId);
+    return clearAuthenticationCookies(res).status(HTTPSTATUS.OK).json({
+                    message: `User logout successfully from all devices.`,
+                })
+  });
+
 }
