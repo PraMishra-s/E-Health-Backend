@@ -1,0 +1,1 @@
+ALTER TABLE "ha_availability" ADD COLUMN "processed" boolean DEFAULT false;

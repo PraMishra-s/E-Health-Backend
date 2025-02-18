@@ -17,6 +17,10 @@ import sessionRoutes from "./modules/session/session.route"
 import mfaRoutes from "./modules/mfa/mfa.routes"
 import userRoutes from "./modules/user/user.route"
 import haRoutes from "./modules/ha/ha.route"
+import "./common/scheduler/endLeaveScheduler"
+import "./common/scheduler/haScheduler"
+
+
 
 
 

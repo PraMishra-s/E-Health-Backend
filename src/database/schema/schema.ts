@@ -54,5 +54,6 @@ export const ha_availability = pgTable("ha_availability", {
     start_date: timestamp("start_date").notNull(),
     end_date: timestamp("end_date").notNull(),
     reason: text("reason"),
-    created_at: timestamp("created_at").defaultNow()
+    created_at: timestamp("created_at").defaultNow(),
+    processed: boolean("processed").default(false),
 });

@@ -1,7 +1,7 @@
 import { User } from "../../common/@types";
 import { ErrorCode } from "../../common/enums/error-code.enum";
 import { UnauthorizedException } from "../../common/utils/catch-errors";
-import { changeSecretWordSchema, fogotPasswordSchema } from "../../common/validators/ha.validator";
+import { changeSecretWordSchema, fogotPasswordSchema, setLeaveSchema } from "../../common/validators/ha.validator";
 import { HTTPSTATUS } from "../../config/http.config";
 import { asyncHandler } from "../../middlewares/asyncHandler";
 import { HaService } from "./ha.service";
@@ -40,4 +40,58 @@ export class HaController{
             message: "Secret changed successfully.",
         });
     });
+    public toggleAvailability = asyncHandler(async (req: Request, res: Response) => {
+        const userId = (req.user as User)?.id;
+        const userType = (req.user as User)?.userType; 
+
+        if (!userId || userType !== "HA") {
+            throw new UnauthorizedException("Unauthorized access", ErrorCode.ACCESS_FORBIDDEN);
+        }
+
+        const newStatus = await this.haService.toggleAvailability(userId);
+
+        return res.status(HTTPSTATUS.OK).json({
+            message: `Availability updated successfully.`,
+            is_available: newStatus,
+        });
+    });
+    public setLeave = asyncHandler(async (req: Request, res: Response) => {
+        const userId = (req.user as User)?.id;
+        const userType = (req.user as User)?.userType;
+
+        if (!userId || userType !== "HA") {
+            throw new UnauthorizedException(
+                "Unauthorized access.",
+                ErrorCode.ACCESS_FORBIDDEN
+            );
+        }
+
+        // Validate input
+        const { start_date, end_date, reason } = setLeaveSchema.parse(req.body);
+
+        await this.haService.setLeave(userId, start_date, end_date, reason);
+
+        return res.status(HTTPSTATUS.OK).json({
+            message: "Leave details set successfully.",
+        });
+    });
+    public cancelLeave = asyncHandler(async (req: Request, res: Response) => {
+
+        const userId = (req.user as any)?.id; 
+        const userType = (req.user as any)?.userType; 
+
+        if (!userId || userType !== "HA") {
+        throw new UnauthorizedException("Unauthorized access.",
+             ErrorCode.ACCESS_FORBIDDEN
+        )
+        }
+
+        await this.haService.cancelLeave(userId);
+
+        return res.status(HTTPSTATUS.OK).json({
+        message: "Leave cancelled successfully; HA is now available."
+        });
+    });
+
+
 }
