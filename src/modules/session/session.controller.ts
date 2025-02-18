@@ -89,6 +89,9 @@ export class SessionController {
     }
 
     const response = await this.sessionService.deleteAllSessions(userId);
+     return clearAuthenticationCookies(res).status(HTTPSTATUS.OK).json({
+                message: `All Session removed successfully and user logged out.`,
+        })
     
   });
 

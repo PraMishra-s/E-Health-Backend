@@ -1,0 +1,1 @@
+ALTER TABLE "ha_details" ALTER COLUMN "ha_id" SET DATA TYPE uuid;

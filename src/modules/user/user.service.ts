@@ -57,4 +57,25 @@ export class UserService{
         )
        }
     }
+    public async getEmail(email: string) {
+        try {
+            const userResult = await db
+            .select({ role: login.role })  // Only query login table
+            .from(login)
+            .where(eq(login.email, email))
+            .limit(1);
+
+        if (!userResult.length) {
+            return "NOT_FOUND";
+        }
+
+        return userResult[0].role === "HA" ? "HA" : "USER";
+        } catch (error) {
+           throw new InternalServerException(
+            "Unable to find the Email",
+            ErrorCode.AUTH_USER_NOT_FOUND
+           ) 
+        }
+    }
+
 }

@@ -22,6 +22,7 @@ const enum ErrorCode {
     // System Errors
     INTERNAL_SERVER_ERROR = "INTERNAL_SERVER_ERROR",
     VERIFICATION_ERROR = "VERIFICATION_ERROR",
+    SECRET_WRONG = "SECRET_WRONG",
   }
   
   export { ErrorCode };

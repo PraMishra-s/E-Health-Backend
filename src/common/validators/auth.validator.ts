@@ -26,7 +26,8 @@ export const registrationSchema = z.object({
     department_id: PROGRAMME_ID_ENUM.optional(), 
     std_year: z.string().trim().max(1).optional(), 
     user_type: userTypeEnum, 
-    role: roleEnum.optional(), 
+    role: roleEnum.optional(),
+    secret_word: z.string().trim().min(6).optional() 
 }).refine((val) => {
     if (val.password) return val.password === val.confirmPassword; 
     return true;

@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { LoginDto, RegisterDto, resetPasswordDto } from "../../common/interface/auth.interface";
 import { db } from "../../database/drizzle";
-import { login, users, sessions } from "../../database/schema/schema";
+import { login, users, sessions, ha_details } from "../../database/schema/schema";
 import { BadRequestException, InternalServerException, NotFoundException, UnauthorizedException } from "../../common/utils/catch-errors";
 import { ErrorCode } from "../../common/enums/error-code.enum";
 import { compareValue, hashValue } from "../../common/utils/bcrypt";
@@ -61,7 +61,19 @@ export class AuthService{
                     verified: false
                 });
             }
-            }
+
+            if(newUser.userType === "HA"){
+            let hashedSecret: string | null = null;
+            hashedSecret = await hashValue(registerData.secret_word!)
+             await db.insert(ha_details).values({
+                ha_id: newUser.id,
+                secret_key: hashedSecret,
+                is_available: false,
+                is_onLeave: false
+            })
+        }
+        }
+       
         const code = generateUniqueCode();
         // Build a Redis key using the userId
         const redisKey = `verification:code:${code}`;

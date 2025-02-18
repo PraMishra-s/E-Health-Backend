@@ -42,7 +42,7 @@ export const setupJwtStrategy = (passport: PassportStatic) => {
                 return done(null, false);
                 }
                 req.sessionId = payload.sessionId;
-                req.user = user; // This should be correctly typed as `User`
+                req.user = user; 
                 return done(null, user);
             } catch (error) {
                 return done(null, false);

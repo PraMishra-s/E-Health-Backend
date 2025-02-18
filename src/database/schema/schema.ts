@@ -41,3 +41,18 @@ export const sessions = pgTable("sessions", {
     created_at: timestamp("created_at").defaultNow().notNull(),
     expired_at: timestamp("expired_at").notNull()
 });
+export const ha_details = pgTable("ha_details", {
+    ha_id: uuid("ha_id").primaryKey().references(() => users.id, { onDelete: "cascade" }),  
+    secret_key: text("secret_key").notNull(), 
+    is_available: boolean("is_available").default(true),
+    is_onLeave: boolean("is_on_leave").default(false),
+    updated_at: timestamp("updated_at").defaultNow()
+});
+export const ha_availability = pgTable("ha_availability", {
+    id: uuid("id").primaryKey().defaultRandom().notNull(),
+    ha_id: uuid("ha_id").references(() => ha_details.ha_id, { onDelete: "cascade" }),
+    start_date: timestamp("start_date").notNull(),
+    end_date: timestamp("end_date").notNull(),
+    reason: text("reason"),
+    created_at: timestamp("created_at").defaultNow()
+});

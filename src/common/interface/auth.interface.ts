@@ -11,6 +11,7 @@ export interface RegisterDto {
     std_year?: string; 
     user_type: "STUDENT" | "STAFF" | "DEAN" | "NON-STAFF" | "HA";
     role?: "STUDENT" | "STAFF" | "DEAN" | "HA";
+    secret_word?: string
 }
 export interface LoginDto{
     email: string,
