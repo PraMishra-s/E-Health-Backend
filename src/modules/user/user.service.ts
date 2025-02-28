@@ -4,9 +4,10 @@ import { login, users } from "../../database/schema/schema";
 import { BadRequestException, InternalServerException, NotFoundException } from "../../common/utils/catch-errors";
 import { compareValue, hashValue } from "../../common/utils/bcrypt";
 import { ErrorCode } from "../../common/enums/error-code.enum";
+import redis from "../../common/service/redis.service";
 
 export class UserService{
-    public async updateUser(userId: string, updatedData: Partial<typeof users.$inferInsert>) {
+    public async updateUser(userId: string, updatedData: Partial<typeof users.$inferInsert>, sessionId: string) {
         try {
             const [updatedUser] = await db
             .update(users)
@@ -17,6 +18,21 @@ export class UserService{
             if (!updatedUser) {
                 throw new NotFoundException("User not found or update failed.");
             }
+            const sessionKey = `session:${sessionId}`;
+            const sessionData = await redis.get(sessionKey);
+            console.log(sessionKey)
+            if (sessionData) {
+                const session = typeof sessionData === "string" ? JSON.parse(sessionData) : sessionData; // Ensure parsing only if needed
+
+                // Update the session user properties directly
+                session.name = updatedData.name ;
+                session.gender = updatedData.gender;
+                session.contact_number = updatedData.contact_number
+                session.blood_type = updatedData.blood_type ;
+                session.department_id = updatedData.department_id ;
+                await redis.set(sessionKey, JSON.stringify(session));
+            }
+
 
             return updatedUser;
         } catch (error) {
@@ -41,10 +57,8 @@ export class UserService{
                 throw new BadRequestException("Current password is incorrect.");
             }
 
-            // Hash new password
             const hashedNewPassword = await hashValue(newPassword);
 
-            // Update password in DB
             await db.update(login)
                 .set({ password: hashedNewPassword })
                 .where(eq(users.id, userId));

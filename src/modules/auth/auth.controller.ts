@@ -55,7 +55,10 @@ export class AuthController{
         }
     );
     public resendVerifyEmail = asyncHandler(async (req: Request, res: Response) => {
-        const email = emailSchema.parse(req.body.email);
+        const { email } = req.body;
+        console.log(`this is the email send ${email}`)
+        emailSchema.parse(email);
+
 
         await this.authService.resendVerificationEmail( email);
 
@@ -105,8 +108,7 @@ export class AuthController{
                 })
         }
     );
-
-     public logout = asyncHandler(
+    public logout = asyncHandler(
         async (req: Request, res: Response):Promise<any> =>{
             const sessionId = req.sessionId
             if(!sessionId){
@@ -119,5 +121,5 @@ export class AuthController{
                 
             })
         }
-    )
+    );
 }

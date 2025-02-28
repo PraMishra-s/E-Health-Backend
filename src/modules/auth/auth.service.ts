@@ -22,7 +22,7 @@ export class AuthService{
                 .from(login)
                 .where(eq(login.email, registerData.email));
 
-            if (existingUser.length > 0) {  // Fix: check length
+            if (existingUser.length > 0) {  
                 throw new BadRequestException(
                     "User already exists with this email",
                     ErrorCode.AUTH_EMAIL_ALREADY_EXISTS
@@ -35,7 +35,7 @@ export class AuthService{
             hashedPassword = await hashValue(registerData.password!);
         }
 
-        const userId = crypto.randomUUID(); // Generate UUID once
+        const userId = crypto.randomUUID(); 
 
         try {
             const [newUser] = await db.insert(users).values({
@@ -53,11 +53,10 @@ export class AuthService{
         if(newUser){
             if (registerData.email && hashedPassword) {
                 await db.insert(login).values({
-                    id: crypto.randomUUID(),
                     user_id: newUser.id,
                     email: registerData.email,
                     password: hashedPassword,
-                    role: registerData.role || "STUDENT",
+                    role: registerData.user_type === "NON-STAFF" ? "STAFF" : registerData.user_type || "STUDENT",
                     verified: false
                 });
             }
@@ -75,12 +74,11 @@ export class AuthService{
         }
        
         const code = generateUniqueCode();
-        // Build a Redis key using the userId
+
         const redisKey = `verification:code:${code}`;
         
         await setKeyWithTTL(redisKey, userId, 2700);
 
-        // Construct the verification URL
         const verificationUrl = `${config.APP_ORIGIN}/confirm-account?code=${code}`;
         
         await sendEmail({
@@ -136,6 +134,27 @@ export class AuthService{
             }
         }  
         let sessionId = user[0].user_id
+        const userDetails = await db
+        .select({
+            id: users.id,
+            student_id: users.student_id,
+            name: users.name,
+            gender: users.gender,
+            department_id: users.department_id,
+            std_year: users.std_year,
+            userType: users.userType,
+            blood_type: users.blood_type,
+            contact_number: users.contact_number,
+        })
+        .from(users)
+        .where(eq(users.id, user[0].user_id))
+        .limit(1);
+
+    if (!userDetails.length) {
+        throw new NotFoundException("User details not found", ErrorCode.AUTH_USER_NOT_FOUND);
+    }
+
+    const fullUser = userDetails[0];
         try {
             const [session] = await db.insert(sessions).values({
                 user_id: user[0].user_id,
@@ -145,11 +164,13 @@ export class AuthService{
                 sessionId = session.id; 
                 const sessionKey = `session:${sessionId}`;
                 const sessionData = {
-                    id: sessionId,
+                    sessionid: sessionId,
                     userId: user[0].user_id,
                     userAgent,
                     createdAt: session.created_at,
-                    expiredAt: session.expired_at, // 7 days
+                    expiredAt: session.expired_at,
+                    email: user[0]?.email, // 7 days
+                    ...fullUser
                 };
 
                 await redis.set(sessionKey, JSON.stringify(sessionData), { ex: 60 * 60 * 24 * 7 });

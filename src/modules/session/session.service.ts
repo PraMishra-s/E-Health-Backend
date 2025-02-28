@@ -1,6 +1,6 @@
 import { eq, gt, and, desc } from "drizzle-orm";
 import { db } from "../../database/drizzle";
-import { sessions, users } from "../../database/schema/schema";
+import { login, sessions, users } from "../../database/schema/schema";
 import { InternalServerException, NotFoundException } from "../../common/utils/catch-errors";
 import redis from "../../common/service/redis.service";
 import { ErrorCode } from "../../common/enums/error-code.enum";
@@ -41,30 +41,52 @@ export class SessionService {
             return { user: parsedSession };
         }
 
-        const result = await db
-            .select({
-                session_id: sessions.id,
-                user: {
-                    id: users.id,
-                    student_id: users.student_id,
-                    name: users.name,
-                    gender: users.gender,
-                    department_id: users.department_id,
-                    std_year: users.std_year,
-                    userType: users.userType,
-                    blood_type: users.blood_type,
-                    contact_number: users.contact_number,
-                },
-            })
-            .from(sessions)
-            .innerJoin(users, eq(sessions.user_id, users.id))
-            .where(eq(sessions.id, sessionId));
+       const result = await db
+        .select({
+            session_id: sessions.id,
+            user_agent: sessions.user_agent || "Unknown",
+            createdAt: sessions.created_at,
+            expiredAt: sessions.expired_at,
+            email: login.email, 
+            user_id: users.id,
+            student_id: users.student_id,
+            name: users.name,
+            gender: users.gender,
+            department_id: users.department_id,
+            std_year: users.std_year,
+            userType: users.userType,
+            blood_type: users.blood_type,
+            contact_number: users.contact_number,
+        })
+        .from(sessions)
+        .innerJoin(users, eq(sessions.user_id, users.id))
+        .innerJoin(login, eq(users.id, login.user_id)) 
+        .where(eq(sessions.id, sessionId));
 
         if (!result.length) {
             throw new NotFoundException("Session not found.");
         }
+          const sessionResult = result[0];
 
-        return { user: result[0]};
+        const newResult = {
+            id: sessionResult.session_id,
+            userId: sessionResult.user_id,
+            userAgent: sessionResult.user_agent,
+            createdAt: sessionResult.createdAt,
+            expiredAt: sessionResult.expiredAt,
+            email: sessionResult.email,  // Include the email
+            // Flatten the user data
+            student_id: sessionResult.student_id,
+            name: sessionResult.name,
+            gender: sessionResult.gender,
+            department_id: sessionResult.department_id,
+            std_year: sessionResult.std_year,
+            userType: sessionResult.userType,
+            blood_type: sessionResult.blood_type,
+            contact_number: sessionResult.contact_number
+        };
+        
+        return { user: newResult};
     }
 
  

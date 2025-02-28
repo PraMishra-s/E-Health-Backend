@@ -3,7 +3,7 @@ import { HTTPSTATUS } from "../config/http.config";
 import { AppError } from "../common/utils/AppError";
 import { z } from "zod"
 import { Response } from "express";
-// import { clearAuthenticationCookies, REFRESH_PATH } from "../common/utils/cookies";
+import { clearAuthenticationCookies, REFRESH_PATH } from "../common/utils/cookies";
 
 
 const formatZodError = (res: Response, error: z.ZodError) =>{
@@ -20,9 +20,9 @@ const formatZodError = (res: Response, error: z.ZodError) =>{
 export const errorHandler:ErrorRequestHandler = (error, req, res, next):any =>{
     console.error(`Error occured at path: ${req.path}`, error)
 
-    // if(req.path === REFRESH_PATH){
-    //     clearAuthenticationCookies(res)
-    // }    
+    if(req.path === REFRESH_PATH){
+        clearAuthenticationCookies(res)
+    }    
     if(error instanceof SyntaxError){
         return res.status(HTTPSTATUS.BAD_GATEWAY).json({
             message: "Invalid Json format, please check your request body"

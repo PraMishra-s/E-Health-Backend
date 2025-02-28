@@ -6,7 +6,7 @@ import { anHourFromNow } from "../../common/utils/date-time";
 import { generateUniqueCode } from "../../common/utils/uuid";
 import { db } from "../../database/drizzle";
 import { ha_availability, ha_details, login, users } from "../../database/schema/schema";
-import { eq, gt, and } from "drizzle-orm";
+import { and, eq, gt } from "drizzle-orm";
 import { sendEmail } from "../../mailer/mailer";
 import { passwordResetTemplate } from "../../mailer/template/template";
 import { config } from "../../config/app.config";

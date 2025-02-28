@@ -16,12 +16,13 @@ export class UserController{
 
     public updateUserProfile = asyncHandler(async (req: Request, res: Response) => {
          const userId = (req.user as User)?.id;
+         const sessionId = req?.sessionId!
         if (!userId) {
             return res.status(HTTPSTATUS.UNAUTHORIZED).json({ message: "Unauthorized" });
         }
 
         const validatedData = updateUserSchema.parse(req.body); // Validate input
-        const updatedUser = await this.userService.updateUser(userId, validatedData);
+        const updatedUser = await this.userService.updateUser(userId, validatedData, sessionId);
 
         return res.status(HTTPSTATUS.OK).json({
             message: "User profile updated successfully",
@@ -52,6 +53,5 @@ export class UserController{
             userType, 
         });
     });
-
 
 }

@@ -21,7 +21,7 @@ export class HaController{
             message: "Password reset Email send"
         })
 
-    })
+    });
     public changeSecretWord = asyncHandler(async (req: Request, res: Response) => {
         const userId = (req.user as User)?.id;
         const userType = (req.user as User)?.userType
@@ -92,6 +92,5 @@ export class HaController{
         message: "Leave cancelled successfully; HA is now available."
         });
     });
-
 
 }

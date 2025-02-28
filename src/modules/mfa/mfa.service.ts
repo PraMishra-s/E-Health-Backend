@@ -37,7 +37,7 @@ export class MFAService{
         };
         return sanitizedUser;
     }
-   public async verifyMFAForLogin(code: string, email: string, userAgent?: string) {
+    public async verifyMFAForLogin(code: string, email: string, userAgent?: string) {
         const userResult = await db.select().from(login).where(eq(login.email, email));
 
         if (userResult.length === 0) {
@@ -126,7 +126,5 @@ export class MFAService{
 
         return { message: "MFA successfully disabled." };
     }
-
-
-
+    
 }

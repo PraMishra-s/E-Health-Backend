@@ -15,7 +15,7 @@ export class SessionController {
         this.sessionService = sessionService;
     }
 
-    // 🔹 Fetch all sessions for the authenticated user
+
     public getAllSession = asyncHandler(async (req: Request, res: Response) => {
         const userId = (req.user as User)?.id;
         const currentSessionId = req.sessionId;
@@ -79,7 +79,7 @@ export class SessionController {
         });
     });
 
-   public deleteAllSessions = asyncHandler(async (req: Request, res: Response): Promise<any> => {
+    public deleteAllSessions = asyncHandler(async (req: Request, res: Response): Promise<any> => {
     const userId = (req.user as User)?.id;;
     if (!userId) {
       throw new UnauthorizedException(
@@ -93,6 +93,6 @@ export class SessionController {
                 message: `All Session removed successfully and user logged out.`,
         })
     
-  });
+    });
 
 }
