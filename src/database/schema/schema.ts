@@ -20,7 +20,8 @@ export const users = pgTable("users", {
     std_year: varchar('std_year'),
     userType: USER_TYPE_ENUM('user_type'),
     blood_type : BLOOD_GROUP_ENUM('blood_type'),
-    contact_number: varchar('contact_number', {length: 10}).unique().notNull()
+    contact_number: varchar('contact_number', {length: 10}).unique().notNull(),
+    profile_url: varchar('profile_url', {length: 255})
 })
 
 

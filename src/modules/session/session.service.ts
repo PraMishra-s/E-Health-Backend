@@ -57,6 +57,8 @@ export class SessionService {
             userType: users.userType,
             blood_type: users.blood_type,
             contact_number: users.contact_number,
+            profile_url: users.profile_url,
+            mfa_required: login.mfa_required
         })
         .from(sessions)
         .innerJoin(users, eq(sessions.user_id, users.id))
@@ -83,7 +85,8 @@ export class SessionService {
             std_year: sessionResult.std_year,
             userType: sessionResult.userType,
             blood_type: sessionResult.blood_type,
-            contact_number: sessionResult.contact_number
+            contact_number: sessionResult.contact_number,
+            mfa_required: login.mfa_required
         };
         
         return { user: newResult};
@@ -91,49 +94,40 @@ export class SessionService {
 
  
     public async deleteSession(sessionId: string, userId: string) { 
-        try {
-            const sessionKey = `session:${sessionId}`;
-            const redisSession = await redis.get(sessionKey);
 
-            // Delete session from Redis if it exists
-            if (redisSession) {
-                await redis.del(sessionKey);
-            }
-
-            // Ensure the session exists and belongs to the user
-            const session = await db
-                .select({ user_id: sessions.user_id })
-                .from(sessions)
-                .where(eq(sessions.id, sessionId))
-                .limit(1);
-
+        const sessionKey = `session:${sessionId}`;
+        const redisSession = await redis.get(sessionKey)            
+        // Delete session from Redis if it exists
+        if (redisSession) {
+            await redis.del(sessionKey);
+                // Ensure the session exists and belongs to the user
+        const session = await db
+            .select({ user_id: sessions.user_id })
+            .from(sessions)
+            .where(eq(sessions.id, sessionId))
+            .limit(1)          
             if (!session.length || session[0].user_id !== userId) {
                 throw new NotFoundException(
                     "Session not found or unauthorized to delete.",
                     ErrorCode.AUTH_UNAUTHORIZED_ACCESS
-                );
-            }
-            
-            const deletedSession = await db
-                .delete(sessions)
-                .where(eq(sessions.id, sessionId))
-                .returning();
+            );
+        }
 
+        const deletedSession = await db
+            .delete(sessions)
+            .where(eq(sessions.id, sessionId))
+            .returning()            
             if (!deletedSession.length) {
                 throw new NotFoundException(
                     "Session already deleted.",
                     ErrorCode.AUTH_NOT_FOUND
                 );
             }
-        } catch (error) {
-            console.error("Error deleting session:", error);
-            throw new InternalServerException("Failed to delete session.");
         }
     }
 
     
     public async deleteAllSessions(userId: string) {
- 
 
     const userSessions = await db
         .select({ id: sessions.id })
@@ -149,9 +143,12 @@ export class SessionService {
     if (redisKeys.length > 0) {
         await redis.del(...redisKeys);
     }
-
+    
     // Delete all sessions from PostgreSQL for this user
-    await db.delete(sessions).where(eq(sessions.user_id, userId));
+    const response = await db.delete(sessions).where(eq(sessions.user_id, userId));
+    if(!response){
+        throw new InternalServerException("Failed to delete sessions222.");
+    }
 
     return { message: "All sessions removed successfully" };
     }

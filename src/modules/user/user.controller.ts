@@ -1,7 +1,7 @@
 import { User } from "../../common/@types";
 import { UnauthorizedException } from "../../common/utils/catch-errors";
 import { emailSchema } from "../../common/validators/auth.validator";
-import { changePasswordSchema, updateUserSchema } from "../../common/validators/user.validator";
+import { changePasswordSchema, updateProfilePicSchema, updateUserSchema } from "../../common/validators/user.validator";
 import { HTTPSTATUS } from "../../config/http.config";
 import { asyncHandler } from "../../middlewares/asyncHandler";
 import { UserService } from "./user.service"
@@ -35,7 +35,6 @@ export class UserController{
             throw new UnauthorizedException("Unauthorized access.");
         }
 
-        // Validate request body using Zod schema
         const { currentPassword, newPassword } = changePasswordSchema.parse(req.body);
 
         await this.userService.changePassword(userId, currentPassword, newPassword);
@@ -53,5 +52,22 @@ export class UserController{
             userType, 
         });
     });
+    public updatePofilePic = asyncHandler(async (req: Request, res: Response) => {
+         const userId = (req.user as User)?.id;
+         const sessionId = req?.sessionId!
+        if (!userId) {
+            return res.status(HTTPSTATUS.UNAUTHORIZED).json({ message: "Unauthorized" });
+        }
+                if (!userId) {
+            return res.status(HTTPSTATUS.UNAUTHORIZED).json({ message: "Unauthorized" });
+        }
+
+        const validatedData = updateProfilePicSchema.parse(req.body); 
+        const updatedUser = await this.userService.updateProfilePic(userId,  validatedData , sessionId);
+        return res.status(HTTPSTATUS.OK).json({
+            message: "User profile picture updated successfully",
+            user: updatedUser,
+        })
+    })
 
 }

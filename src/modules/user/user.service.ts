@@ -43,33 +43,21 @@ export class UserService{
         }
     }
     public async changePassword(userId: string, currentPassword: string, newPassword: string) {
-       try {
-            const userResult = await db.select().from(login).where(eq(users.id, userId));
+      const userResult = await db.select().from(login).where(eq(login.user_id, userId));
 
-            if (userResult.length === 0) {
-                throw new NotFoundException("User not found.");
-            }
-
-            const user = userResult[0];
-
-            const isPasswordValid = await compareValue(currentPassword, user.password);
-            if (!isPasswordValid) {
-                throw new BadRequestException("Current password is incorrect.");
-            }
-
-            const hashedNewPassword = await hashValue(newPassword);
-
-            await db.update(login)
-                .set({ password: hashedNewPassword })
-                .where(eq(users.id, userId));
-
-            return;
-       } catch (error) {
-        throw new InternalServerException(
-            "Failed to update the password",
-            ErrorCode.INTERNAL_SERVER_ERROR
-        )
-       }
+        if (userResult.length === 0) {
+            throw new NotFoundException("User not found.");
+        }
+        const user = userResult[0];
+        const isPasswordValid = await compareValue(currentPassword, user.password);
+        if (!isPasswordValid) {
+            throw new BadRequestException("Current password is incorrect.");
+        }
+        const hashedNewPassword = await hashValue(newPassword);
+        await db.update(login)
+            .set({ password: hashedNewPassword })
+            .where(eq(login.user_id, userId));
+        return;
     }
     public async getEmail(email: string) {
         try {
@@ -90,6 +78,27 @@ export class UserService{
             ErrorCode.AUTH_USER_NOT_FOUND
            ) 
         }
+    }
+    public async updateProfilePic(userId: string, updatedData: Partial<typeof users.$inferInsert>, sessionId: string){
+         const [updatedUser] = await db
+            .update(users)
+            .set({ profile_url: updatedData.profile_url })
+            .where(eq(users.id, userId))
+            .returning();
+
+            if (!updatedUser) {
+                throw new NotFoundException("User not found or update failed.");
+            }
+            const sessionKey = `session:${sessionId}`;
+            const sessionData = await redis.get(sessionKey);
+            if (sessionData) {
+                const session = typeof sessionData === "string" ? JSON.parse(sessionData) : sessionData; 
+                session.profile_url = updatedData.profile_url;
+                await redis.set(sessionKey, JSON.stringify(session));
+            }
+
+
+            return updatedUser;
     }
 
 }

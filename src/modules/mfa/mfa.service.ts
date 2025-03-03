@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { ErrorCode } from "../../common/enums/error-code.enum";
 import { BadRequestException, InternalServerException, NotFoundException, UnauthorizedException } from "../../common/utils/catch-errors";
 import { db } from "../../database/drizzle";
-import { login, sessions } from "../../database/schema/schema";
+import { login, sessions, users } from "../../database/schema/schema";
 import redis from "../../common/service/redis.service";
 import { refreshTokenSignOptions, signJwtToken } from "../../common/utils/jwt";
 
@@ -10,7 +10,7 @@ export class MFAService{
 
     
 
-    public async invokeMFASetup(userId: string) {
+    public async invokeMFASetup(userId: string, sessionId: string) {
 
         if (!userId) {
             throw new UnauthorizedException("User not found for the session.");
@@ -28,6 +28,13 @@ export class MFAService{
                 ErrorCode.ACCESS_FORBIDDEN
             );
         }
+        const sessionKey = `session:${sessionId}`;
+            const sessionData = await redis.get(sessionKey);
+            if (sessionData) {
+                const session = typeof sessionData === "string" ? JSON.parse(sessionData) : sessionData; 
+                session.mfa_required = true;
+                await redis.set(sessionKey, JSON.stringify(session));
+            }
         const sanitizedUser = {
             id: updatedUser[0].user_id,
             email: updatedUser[0].email,
@@ -63,25 +70,56 @@ export class MFAService{
 
         let sessionId: string;
         try {
+            
+
+        const userDetails = await db
+        .select({
+            id: users.id,
+            student_id: users.student_id,
+            name: users.name,
+            gender: users.gender,
+            department_id: users.department_id,
+            std_year: users.std_year,
+            userType: users.userType,
+            blood_type: users.blood_type,
+            contact_number: users.contact_number,
+            profile_url: users.profile_url
+        })
+        .from(users)
+        .where(eq(users.id, user.user_id))
+        .limit(1);
+
+    if (!userDetails.length) {
+        throw new NotFoundException("User details not found", ErrorCode.AUTH_USER_NOT_FOUND);
+    }
+
+    const fullUser = userDetails[0];
+        try {
             const [session] = await db.insert(sessions).values({
                 user_id: user.user_id,
                 user_agent: userAgent || "Unknown",
-                created_at: new Date(),
-                expired_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7)
+                expired_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7) 
             }).returning();
+                sessionId = session.id; 
+                const sessionKey = `session:${sessionId}`;
+                const sessionData = {
+                    sessionid: sessionId,
+                    userId: user.user_id,
+                    userAgent,
+                    createdAt: session.created_at,
+                    expiredAt: session.expired_at,
+                    email: user?.email, // 7 days
+                    ...fullUser,
+                    mfa_required: user.mfa_required
+                };
 
-            sessionId = session.id;
-
-
-            const sessionKey = `session:${sessionId}`;
-            const sessionData = {
-                id: sessionId,
-                userId: user.user_id,
-                userAgent: userAgent || "Unknown",
-                createdAt: session.created_at,
-                expiredAt: session.expired_at,
-            };
-            await redis.set(sessionKey, JSON.stringify(sessionData), { ex: 60 * 60 * 24 * 7 });
+                await redis.set(sessionKey, JSON.stringify(sessionData), { ex: 60 * 60 * 24 * 7 });
+            } catch (error: any) {
+                throw new InternalServerException(
+                    "Failed to insert in the session table",
+                    ErrorCode.FAILED_SESSSION
+                )
+            }
 
         } catch (error) {
             throw new InternalServerException("Failed to create session after MFA", ErrorCode.AUTH_INVALID_TOKEN);
@@ -112,7 +150,7 @@ export class MFAService{
             refreshToken,
         };
     }
-   public async revokeMFA(userId: string) {
+   public async revokeMFA(userId: string, sessionId: string) {
 
         const updatedUser = await db
             .update(login)
@@ -123,6 +161,13 @@ export class MFAService{
         if (!updatedUser.length) {
             throw new NotFoundException("User not found or MFA already disabled.");
         }
+            const sessionKey = `session:${sessionId}`;
+            const sessionData = await redis.get(sessionKey);
+            if (sessionData) {
+                const session = typeof sessionData === "string" ? JSON.parse(sessionData) : sessionData; 
+                session.mfa_required = false;
+                await redis.set(sessionKey, JSON.stringify(session));
+            }
 
         return { message: "MFA successfully disabled." };
     }

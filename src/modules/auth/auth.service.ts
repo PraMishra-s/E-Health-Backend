@@ -145,6 +145,7 @@ export class AuthService{
             userType: users.userType,
             blood_type: users.blood_type,
             contact_number: users.contact_number,
+            profile_url: users.profile_url
         })
         .from(users)
         .where(eq(users.id, user[0].user_id))
@@ -170,7 +171,8 @@ export class AuthService{
                     createdAt: session.created_at,
                     expiredAt: session.expired_at,
                     email: user[0]?.email, // 7 days
-                    ...fullUser
+                    ...fullUser,
+                    mfaRequired: user[0].mfa_required
                 };
 
                 await redis.set(sessionKey, JSON.stringify(sessionData), { ex: 60 * 60 * 24 * 7 });

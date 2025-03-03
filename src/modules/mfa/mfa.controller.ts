@@ -15,13 +15,14 @@ export class MFAController{
     }
     public invokeMFASetup = asyncHandler(async (req: Request, res: Response): Promise<any> => {
         const userId = (req.user as User)?.id;
+        const sessionId = req?.sessionId!;
         
         if (!userId) {
             throw new UnauthorizedException("Session not found. Please log in.");
         }
         
 
-       const user =  await this.mfaService.invokeMFASetup(userId);
+       const user =  await this.mfaService.invokeMFASetup(userId, sessionId);
         
         return res.status(HTTPSTATUS.CREATED).json({
             message: "MFA has been enabled successfully.",
@@ -47,12 +48,13 @@ export class MFAController{
 
     public revokeMFA = asyncHandler(async (req: Request, res: Response) => {
         const userId = (req.user as User)?.id;
+        const sessionId = req?.sessionId!;
 
         if (!userId) {
             throw new UnauthorizedException("Session ID not found. Please log in.");
         }
 
-        await this.mfaService.revokeMFA(userId);
+        await this.mfaService.revokeMFA(userId, sessionId);
 
         return res.status(HTTPSTATUS.OK).json({
             message: "MFA successfully disabled.",
