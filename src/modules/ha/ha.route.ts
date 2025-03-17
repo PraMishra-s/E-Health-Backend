@@ -6,9 +6,10 @@ import { authenticateJWT } from "../../common/strageties/jwt.strategy";
 const haRoutes = Router()
 haRoutes.post("/forgot-password", haController.forgotPassword)
 haRoutes.put("/update", authenticateJWT, haController.changeSecretWord)
-haRoutes.post("/toggle-availability", authenticateJWT, haController.toggleAvailability);
+haRoutes.put("/toggle-availability", authenticateJWT, haController.toggleAvailability);
 haRoutes.post("/set-leave", authenticateJWT, haController.setLeave);
 haRoutes.put("/cancel-leave", authenticateJWT, haController.cancelLeave)
+haRoutes.get("/get-leave", authenticateJWT, haController.getLeave)
 
 
 

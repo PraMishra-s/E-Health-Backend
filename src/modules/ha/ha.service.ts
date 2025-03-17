@@ -144,8 +144,9 @@ export class HaService{
             reason
         }).returning();
 
-        const redisKey = `ha:leave:${userId}`;
+        const redisKey = `ha:leave`;
         const leaveData = {
+            is_onLeave: false,
             start_date,
             end_date,
             reason
@@ -186,9 +187,9 @@ export class HaService{
             .set({ processed: true })
             .where(eq(ha_availability.ha_id, userId));
 
-            await redis.del(`ha:leave:${userId}`);
-            const availabilityKey = `ha:availability:${userId}`;
-            await redis.set(availabilityKey, JSON.stringify({ is_available: true, is_onLeave: false }));
+            await redis.del(`ha:leave`);
+            const availabilityKey = `ha:available`;
+            await redis.set(availabilityKey, JSON.stringify({ is_available: true}));
 
             return;
         } catch (error) {
@@ -197,6 +198,25 @@ export class HaService{
                 ErrorCode.INTERNAL_SERVER_ERROR
             )
         }
+    }
+    public async getLeave(userId: string) {
+        const leaveRecords = await db
+            .select()
+            .from(ha_availability)
+            .where(eq(ha_availability.ha_id, userId))
+            .orderBy(ha_availability.start_date);
+
+        if (!leaveRecords.length) {
+            throw new NotFoundException("No leave records found.");
+        }
+
+        return leaveRecords.map(record => ({
+            start_date: record.start_date,
+            end_date: record.end_date,
+            reason: record.reason,
+            created_at: record.created_at,
+            processed: record.processed
+        }));
     }
 
 

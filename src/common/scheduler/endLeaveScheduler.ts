@@ -23,10 +23,10 @@ const endLeaveScheduler = async () => {
             .set({ is_available: true, is_onLeave: false })
             .where(eq(ha_details.ha_id, leave.ha_id));
 
-        const redisKey = `ha:availability:${leave.ha_id}`;
+        const redisKey = `ha:available`;
         await redis.set(redisKey, JSON.stringify({ is_available: true }));
 
-        const leaveKey = `ha:leave:${leave.ha_id}`;
+        const leaveKey = `ha:leave`;
         await redis.del(leaveKey);
 
         await db
@@ -37,6 +37,6 @@ const endLeaveScheduler = async () => {
 };
 
 // Schedule the job to run every minute
-cron.schedule("* */12 * * *", async () => {
+cron.schedule("* * * * *", async () => {
     await endLeaveScheduler();
 });

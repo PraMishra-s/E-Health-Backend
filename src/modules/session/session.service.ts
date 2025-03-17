@@ -1,6 +1,6 @@
 import { eq, gt, and, desc } from "drizzle-orm";
 import { db } from "../../database/drizzle";
-import { login, sessions, users } from "../../database/schema/schema";
+import { ha_details, login, sessions, users } from "../../database/schema/schema";
 import { InternalServerException, NotFoundException } from "../../common/utils/catch-errors";
 import redis from "../../common/service/redis.service";
 import { ErrorCode } from "../../common/enums/error-code.enum";
@@ -35,11 +35,30 @@ export class SessionService {
     public async getSessionById(sessionId: string) {
         const sessionKey = `session:${sessionId}`;
         const sessionData = await redis.get(sessionKey);
+        const haData = await redis.get("ha:available");
+        const leaveKey = `ha:leave`;
+        const leaveData = await redis.get(leaveKey);
+        let is_onLeave = false
+        let onLeaveData: any = []
 
-        if (sessionData) {
-            const parsedSession = typeof sessionData === "string" ? JSON.parse(sessionData) : sessionData; // Ensure parsing only if needed
-            return { user: parsedSession };
+        if (sessionData && haData) {
+        let parsedSession =
+            typeof sessionData === "string" ? JSON.parse(sessionData) : sessionData;
+        const haDataParsed =
+            typeof haData === "string" ? JSON.parse(haData) : haData;
+        parsedSession.is_available = haDataParsed.is_available;
+
+        if (leaveData) {
+            const haLeaveData =
+            typeof leaveData === "string" ? JSON.parse(leaveData) : leaveData;
+            const { is_onLeave, ...restLeaveData } = haLeaveData;
+            parsedSession.is_onLeave = is_onLeave;
+            parsedSession = { ...parsedSession, ...restLeaveData };
         }
+
+        return { user: parsedSession };
+        }
+
 
        const result = await db
         .select({
@@ -68,7 +87,27 @@ export class SessionService {
         if (!result.length) {
             throw new NotFoundException("Session not found.");
         }
-          const sessionResult = result[0];
+        const sessionResult = result[0];
+        
+        const availabilityKey = `ha:available`;
+        const availabilityData = await redis.get(availabilityKey);
+
+        
+
+
+        let isCurrent = true
+        if(availabilityData){
+           const ha_data = typeof availabilityData === "string" ? JSON.parse(availabilityData) : availabilityData;
+            isCurrent = ha_data.is_available
+        }else{
+            const [haAvailability] = await db
+            .select({ is_available: ha_details.is_available })
+            .from(ha_details)
+            .limit(1);
+            isCurrent = haAvailability?.is_available!
+        }
+       
+          
 
         const newResult = {
             id: sessionResult.session_id,
@@ -86,7 +125,11 @@ export class SessionService {
             userType: sessionResult.userType,
             blood_type: sessionResult.blood_type,
             contact_number: sessionResult.contact_number,
-            mfa_required: login.mfa_required
+            mfa_required: login.mfa_required,
+            profile_url: sessionResult.profile_url,
+            is_available: isCurrent,
+            isOnLeave: is_onLeave,
+            ...onLeaveData
         };
         
         return { user: newResult};

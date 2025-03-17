@@ -92,5 +92,20 @@ export class HaController{
         message: "Leave cancelled successfully; HA is now available."
         });
     });
+    public getLeave = asyncHandler(async (req: Request, res: Response) => {
+        const userId = (req.user as any)?.id;
+        const userType = (req.user as any)?.userType;
+
+        if (!userId || userType !== "HA") {
+            throw new UnauthorizedException("Unauthorized access.", ErrorCode.ACCESS_FORBIDDEN);
+        }
+
+        const leaveDetails = await this.haService.getLeave(userId);
+
+        return res.status(HTTPSTATUS.OK).json({
+            message: "Leave details fetched successfully.",
+            leaveDetails,
+        });
+    })
 
 }

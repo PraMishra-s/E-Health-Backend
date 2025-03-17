@@ -151,6 +151,31 @@ export class AuthService{
         .where(eq(users.id, user[0].user_id))
         .limit(1);
 
+        const availabilityKey = `ha:available`;
+        const availabilityData = await redis.get(availabilityKey);
+
+        const leaveKey = `ha:leave`;
+        const leaveData = await redis.get(leaveKey);
+        let is_onLeave = false
+        let isCurrent = true
+        let onLeaveData = []
+        if(availabilityData){
+           const ha_data = typeof availabilityData === "string" ? JSON.parse(availabilityData) : availabilityData;
+            isCurrent = ha_data.is_available
+        }else{
+            const [haAvailability] = await db
+            .select({ is_available: ha_details.is_available })
+            .from(ha_details)
+            .limit(1);
+            isCurrent = haAvailability?.is_available!
+        }
+        if (leaveData) {
+            const ha_data = typeof leaveData === "string" ? JSON.parse(leaveData) : leaveData;
+            is_onLeave = ha_data.is_onLeave;
+            onLeaveData = ha_data;
+        }
+
+
     if (!userDetails.length) {
         throw new NotFoundException("User details not found", ErrorCode.AUTH_USER_NOT_FOUND);
     }
@@ -172,10 +197,14 @@ export class AuthService{
                     expiredAt: session.expired_at,
                     email: user[0]?.email, // 7 days
                     ...fullUser,
-                    mfaRequired: user[0].mfa_required
+                    mfaRequired: user[0].mfa_required,
+                    isAvailable: isCurrent,
+                    isOnLeave: is_onLeave,
+                    ...onLeaveData
+
                 };
 
-                await redis.set(sessionKey, JSON.stringify(sessionData), { ex: 60 * 60 * 24 * 7 });
+                await redis.set(sessionKey, JSON.stringify(sessionData), { ex: 60 * 60 * 24  });
         } catch (error: any) {
             throw new InternalServerException(
                 "Failed to insert in the session table",

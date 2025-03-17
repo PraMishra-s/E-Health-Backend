@@ -1,0 +1,1 @@
+ALTER TABLE "medicine_batches" ADD COLUMN "batch_name" text DEFAULT 'Batch 1' NOT NULL;
