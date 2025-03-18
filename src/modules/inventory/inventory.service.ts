@@ -194,6 +194,8 @@ export class InventoryService{
             // ✅ Log transaction
             const [transaction] = await db.insert(inventory_transactions).values({
                 batch_id: batch.id,
+                medicine_id: batch.medicine_id,
+                batch_name: batch.batch_name,
                 change: -deductAmount,
                 type: "USED_FOR_PATIENT",
                 reason,
@@ -239,6 +241,8 @@ export class InventoryService{
         // ✅ Log transaction
         const [transaction] = await db.insert(inventory_transactions).values({
             batch_id,
+            medicine_id: batch.medicine_id,
+            batch_name: batch.batch_name,
             change: -quantity,
             type: "REMOVED",
             reason,
