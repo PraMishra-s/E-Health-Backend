@@ -58,9 +58,6 @@ export class UserController{
         if (!userId) {
             return res.status(HTTPSTATUS.UNAUTHORIZED).json({ message: "Unauthorized" });
         }
-                if (!userId) {
-            return res.status(HTTPSTATUS.UNAUTHORIZED).json({ message: "Unauthorized" });
-        }
 
         const validatedData = updateProfilePicSchema.parse(req.body); 
         const updatedUser = await this.userService.updateProfilePic(userId,  validatedData , sessionId);
@@ -68,6 +65,18 @@ export class UserController{
             message: "User profile picture updated successfully",
             user: updatedUser,
         })
+    })
+    public getUsers = asyncHandler(async (req:Request, res:Response) =>{
+         const userId = (req.user as User)?.id
+         const userType = (req.user as User)?.userType
+         if (!userId || userType != 'HA'){
+            return res.status(HTTPSTATUS.UNAUTHORIZED).json({ message: "Unauthorized" });
+         }
+         const response = await this.userService.getUsers()
+         return res.status(HTTPSTATUS.OK).json({
+            message: "Users Retrieved Succesfully",
+            users: response
+         })
     })
 
 }

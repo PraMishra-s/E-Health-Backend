@@ -9,5 +9,6 @@ userRoutes.put("/update", authenticateJWT, userController.updateUserProfile)
 userRoutes.post("/email",rateLimiter, userController.getEmail)
 userRoutes.put("/update-profile", authenticateJWT, userController.updatePofilePic)
 userRoutes.put("/change-password", authenticateJWT,rateLimiter, userController.changePassword)
+userRoutes.get("/users", authenticateJWT, userController.getUsers)
 
 export default userRoutes

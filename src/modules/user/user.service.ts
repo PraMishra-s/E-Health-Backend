@@ -100,5 +100,15 @@ export class UserService{
 
             return updatedUser;
     }
+    public async getUsers(){
+        try {
+            return await db.select().from(users);
+        } catch (error) {
+            throw new InternalServerException(
+            "Failed to fetch users",
+            ErrorCode.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
 
 }

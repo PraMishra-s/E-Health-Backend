@@ -22,6 +22,7 @@ import "./common/scheduler/haScheduler"
 import feedRoutes from "./modules/feed/feed.route"
 import inventoryRoutes from "./modules/inventory/inventory.route"
 import illnessRoute from "./modules/illness/illness.route"
+import treatmentRoute from "./modules/treatment/treatment.route"
 
 
 
@@ -61,6 +62,7 @@ app.use(`${BASE_PATH}/ha`, haRoutes)
 app.use(`${BASE_PATH}/feed`, feedRoutes)
 app.use(`${BASE_PATH}/inventory`, inventoryRoutes)
 app.use(`${BASE_PATH}/illness`, illnessRoute)
+app.use(`${BASE_PATH}/treatment`, treatmentRoute)
 
 app.use(errorHandler)
 

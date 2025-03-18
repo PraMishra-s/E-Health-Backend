@@ -7,7 +7,7 @@ export class TreatmentService{
     public async addTreatment(userId: string, data: any) {
         const { patient_id, illness_id, severity, notes, medicines } = data;
 
-        // Create treatment record
+
         const [treatment] = await db.insert(patient_treatment_history).values({
             patient_id,
             doctor_id: userId,
@@ -18,7 +18,7 @@ export class TreatmentService{
 
         if (!treatment) throw new BadRequestException("Failed to create treatment record.");
 
-        // Insert prescribed medicines
+ 
         const prescribedMedicines = medicines.map((med: any) => ({
             treatment_id: treatment.id,
             medicine_id: med.medicine_id,
@@ -31,7 +31,6 @@ export class TreatmentService{
         return treatment;
     }
 
-    // ✅ Update Treatment
     public async updateTreatment(treatmentId: string, data: any) {
         const [updatedTreatment] = await db
             .update(patient_treatment_history)
@@ -43,7 +42,7 @@ export class TreatmentService{
         return updatedTreatment;
     }
 
-    // ✅ Get All Treatments for a Patient
+
     public async getPatientTreatments(patientId: string) {
         return await db
             .select()
@@ -51,7 +50,7 @@ export class TreatmentService{
             .where(eq(patient_treatment_history.patient_id, patientId));
     }
 
-    // ✅ Get Single Treatment Details
+
     public async getTreatmentById(treatmentId: string) {
         const treatment = await db
             .select({

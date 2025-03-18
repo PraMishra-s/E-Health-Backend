@@ -49,7 +49,7 @@ export class TreatmentController{
 
     // ✅ Get all treatments for a patient
     public getPatientTreatments = asyncHandler(async (req: Request, res: Response) => {
-        const patientId = uuidSchema.parse(req.params.patient_id);
+        const patientId = uuidSchema.parse(req.params.id);
         const treatments = await this.treatmentService.getPatientTreatments(patientId);
 
         return res.status(HTTPSTATUS.OK).json({ treatments });
