@@ -4,8 +4,9 @@ import { uuidSchema } from "./inventory.validator";
 
 
 export const createTreatmentSchema = z.object({
-    patient_id: uuidSchema,
-    illness_id: uuidSchema,
+    patient_id: uuidSchema.nullable().optional(),
+    family_member_id: uuidSchema.nullable().optional(),
+    illness_ids: z.array(uuidSchema),
     severity: z.enum(["MILD", "MODERATE", "SEVERE"]),
     notes: z.string().max(500).optional(),
     medicines: z.array(

@@ -1,0 +1,2 @@
+ALTER TABLE "patient_treatment_history" ADD COLUMN "family_member_id" uuid;--> statement-breakpoint
+ALTER TABLE "patient_treatment_history" ADD CONSTRAINT "patient_treatment_history_family_member_id_staff_family_members_id_fk" FOREIGN KEY ("family_member_id") REFERENCES "public"."staff_family_members"("id") ON DELETE cascade ON UPDATE no action;

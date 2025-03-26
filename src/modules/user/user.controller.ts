@@ -1,6 +1,6 @@
 import { User } from "../../common/@types";
 import { UnauthorizedException } from "../../common/utils/catch-errors";
-import { emailSchema } from "../../common/validators/auth.validator";
+import { emailSchema, registrationSchema } from "../../common/validators/auth.validator";
 import { changePasswordSchema, updateProfilePicSchema, updateUserSchema } from "../../common/validators/user.validator";
 import { HTTPSTATUS } from "../../config/http.config";
 import { asyncHandler } from "../../middlewares/asyncHandler";

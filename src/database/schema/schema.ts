@@ -7,6 +7,7 @@ export const ROLE_ENUM = pgEnum('role', ['STUDENT', 'STAFF', 'DEAN','HA'])
 export const transactionTypeEnum = pgEnum("transaction_type", ["ADDED", "USED_FOR_PATIENT", "REMOVED"]);
 export const illnessTypeEnum = pgEnum("illness_type", ["COMMUNICABLE", "NON_COMMUNICABLE"]);
 export const severityEnum = pgEnum("severity", ["MILD", "MODERATE", "SEVERE"]);
+export const RELATION_ENUM = pgEnum("relation", ["CHILD", "SPOUSE", "PARENT", "SIBLING", "OTHER"]);
 
 export const programmes = pgTable('programmes',{
     programme_id: varchar('programme_id', {length: 10}).unique().notNull().primaryKey(),
@@ -95,6 +96,7 @@ export const inventory_transactions = pgTable("inventory_transactions", {
     reason: text("reason").notNull(),
     user_id: uuid("user_id").references(() => users.id, { onDelete: "set null" }), 
     patient_id: uuid("patient_id").references(() => users.id, { onDelete: "set null" }),
+    family_member_id: uuid("family_member_id").references(() => staff_family_members.id, { onDelete: "cascade" }), 
     created_at: timestamp("created_at").defaultNow(),
 });
 export const medicine_batches = pgTable("medicine_batches", {
@@ -114,9 +116,9 @@ export const illnesses = pgTable("illnesses", {
 
 export const patient_treatment_history = pgTable("patient_treatment_history", {
     id: uuid("id").defaultRandom().primaryKey(),
-    patient_id: uuid("patient_id").references(() => users.id, { onDelete: "cascade" }), 
+    patient_id: uuid("patient_id").references(() => users.id, { onDelete: "cascade" }),
+    family_member_id: uuid("family_member_id").references(() => staff_family_members.id, { onDelete: "cascade" }), 
     doctor_id: uuid("doctor_id").references(() => users.id, { onDelete: "set null" }), 
-    illness_id: uuid("illness_id").references(() => illnesses.id, { onDelete: "set null" }), 
     severity: severityEnum("severity").notNull(), 
     notes: text("notes"), 
     created_at: timestamp("created_at").defaultNow(),
@@ -127,6 +129,26 @@ export const treatment_medicines = pgTable("treatment_medicines", {
     medicine_id: uuid("medicine_id").references(() => medicines.id, { onDelete: "set null" }), 
     batch_id: uuid("batch_id").references(() => medicine_batches.id, { onDelete: "set null" }), 
     dosage: text("dosage").notNull(),
+});
+export const treatment_illnesses = pgTable("treatment_illnesses", {
+  id: uuid("id").defaultRandom().primaryKey(), // Added a UUID primary key
+  treatment_id: uuid("treatment_id").references(() => patient_treatment_history.id, { onDelete: "cascade" }),
+  illness_id: uuid("illness_id").references(() => illnesses.id, { onDelete: "cascade" }),
+});
+
+
+
+export const staff_family_members = pgTable("staff_family_members", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    staff_id: uuid("staff_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+    name: text("name").notNull(),
+    gender: GENDER_ENUM("gender"),
+    contact_number: varchar("contact_number", { length: 10 }).unique(), 
+    relation: RELATION_ENUM("relation").notNull(),
+    date_of_birth: timestamp("date_of_birth"),
+    is_active: boolean("is_active").default(true),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow(),
 });
 
 

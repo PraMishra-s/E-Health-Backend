@@ -164,7 +164,7 @@ export class InventoryService{
     }
 
     // ✅ Use medicine (FIFO approach: oldest batch first)
-    public async useMedicine(userId: string, { medicine_id, quantity, reason, patient_id }: any) {
+    public async useMedicine(userId: string, { medicine_id, quantity, reason, patient_id,family_member_id }: any) {
         if (quantity <= 0) {
             throw new BadRequestException("Invalid medicine quantity.", ErrorCode.INVALID_REQUEST);
         }
@@ -200,7 +200,8 @@ export class InventoryService{
                 type: "USED_FOR_PATIENT",
                 reason,
                 user_id: userId,
-                patient_id: patient_id || null
+                patient_id: patient_id || null,
+                family_member_id: family_member_id || null, 
             }).returning();
             
             transactions.push(transaction);

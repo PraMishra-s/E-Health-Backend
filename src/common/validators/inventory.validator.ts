@@ -19,6 +19,7 @@ export const transactionSchema = z.object({
     type: z.enum(["ADDED", "USED_FOR_PATIENT", "REMOVED"]).optional(),
     reason: z.string().min(3, { message: "Reason must be at least 3 characters long" }),
     patient_id: z.string().uuid().nullable().optional(), // Only for "USED_FOR_PATIENT"
+    family_member_id: z.string().uuid().nullable().optional(),
 }).refine((data) => {
     if (data.type === "USED_FOR_PATIENT" && !data.patient_id) {
         return false;

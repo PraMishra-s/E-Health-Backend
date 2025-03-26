@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "../../database/drizzle";
-import { login, users } from "../../database/schema/schema";
+import { login, staff_family_members, users } from "../../database/schema/schema";
 import { BadRequestException, InternalServerException, NotFoundException } from "../../common/utils/catch-errors";
 import { compareValue, hashValue } from "../../common/utils/bcrypt";
 import { ErrorCode } from "../../common/enums/error-code.enum";
@@ -100,15 +100,40 @@ export class UserService{
 
             return updatedUser;
     }
-    public async getUsers(){
+    public async getUsers() {
         try {
-            return await db.select().from(users);
+            return await db
+                .select({
+                    id: users.id,
+                    student_id: users.student_id,
+                    name: users.name,
+                    gender: users.gender,
+                    department_id: users.department_id,
+                    std_year: users.std_year,
+                    userType: users.userType,
+                    blood_type: users.blood_type,
+                    contact_number: users.contact_number,
+                    profile_url: users.profile_url,
+                    family_members: sql<any>`COALESCE(json_agg(json_build_object(
+                        'id', staff_family_members.id,
+                        'name', staff_family_members.name,
+                        'gender', staff_family_members.gender,
+                        'contact_number', staff_family_members.contact_number,
+                        'relation', staff_family_members.relation,
+                        'date_of_birth', staff_family_members.date_of_birth
+                    )) FILTER (WHERE staff_family_members.id IS NOT NULL), '[]')`.as("family_members")
+                })
+                .from(users)
+                .leftJoin(staff_family_members, eq(users.id, staff_family_members.staff_id)) // ✅ Join family members
+                .groupBy(users.id); // ✅ Group by user ID to avoid duplicates
+
         } catch (error) {
             throw new InternalServerException(
-            "Failed to fetch users",
-            ErrorCode.INTERNAL_SERVER_ERROR
+                "Failed to fetch users",
+                ErrorCode.INTERNAL_SERVER_ERROR
             );
         }
     }
+
 
 }
