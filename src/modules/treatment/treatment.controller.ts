@@ -63,6 +63,20 @@ export class TreatmentController{
         return res.status(HTTPSTATUS.OK).json({ treatment });
     });
 
+    public getAllTreatment = asyncHandler(async(req: Request, res:Response)=>{
+        const userId = (req.user as User)?.id;
+        const userType = (req.user as User)?.userType;
+
+        if (!userId || userType !== "HA") {
+            throw new UnauthorizedException(
+                "Unauthorized access.",
+                ErrorCode.ACCESS_FORBIDDEN
+            );
+        }
+        const treatments = await this.treatmentService.getAllTreatment();
+        return res.status(HTTPSTATUS.OK).json({ treatments });
+    })
+
     // ✅ Delete Treatment
     public deleteTreatment = asyncHandler(async (req: Request, res: Response) => {
         const userId = (req.user as User)?.id;

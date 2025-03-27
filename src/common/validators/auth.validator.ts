@@ -11,14 +11,14 @@ export const userTypeEnum = z.enum(["STUDENT", "STAFF", "DEAN", "NON-STAFF", "HA
 export const roleEnum = z.enum(["STUDENT", "STAFF", "DEAN", "HA"]);
 export const PROGRAMME_ID_ENUM = z.enum([
   "P01", "P02", "P03", "P04", "P05",
-  "P06", "P07", "P08", "P09", "P10", "P12"
+  "P06", "P07", "P08", "P09", "P10", "P11"
 ]);
 
 export const registrationSchema = z.object({
     name: z.string().trim().min(2).max(100),
     student_id: z.string().trim().min(8).max(8).optional(), 
     email: emailSchema.optional(), 
-    contact_number: z.string().trim().min(8).max(15).regex(/^\d+$/, "Invalid phone number"),
+    contact_number: z.string().trim().min(8).max(15).regex(/^\d+$/, "Invalid phone number").optional(),
     password: passwordSchema.optional(),
     confirmPassword: passwordSchema.optional(),
     gender: genderEnum,

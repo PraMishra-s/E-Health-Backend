@@ -1,0 +1,1 @@
+ALTER TABLE "staff_family_members" ADD COLUMN "blood_type" "blood_type";

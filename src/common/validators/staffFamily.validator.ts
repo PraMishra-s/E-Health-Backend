@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { RELATION_ENUM } from "../../database/schema/schema";
+import { bloodTypeEnum } from "./auth.validator";
 
 
 export const staffFamilySchema = z.object({
@@ -8,6 +8,7 @@ export const staffFamilySchema = z.object({
     gender: z.enum(["MALE", "FEMALE", "OTHERS"]),
     contact_number: z.string().length(8).optional(),
     relation: z.enum(["CHILD", "SPOUSE", "PARENT", "SIBLING", "OTHER"]),
+    blood_type: bloodTypeEnum.optional(),
     date_of_birth: z.string()
     .transform((str) => new Date(str))
     .optional()

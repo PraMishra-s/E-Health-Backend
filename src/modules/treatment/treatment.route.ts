@@ -9,7 +9,8 @@ const treatmentRoute = Router();
 treatmentRoute.post("/create/", authenticateJWT, treatmentController.addTreatment);
 treatmentRoute.put("/update/:id", authenticateJWT, treatmentController.updateTreatment);
 treatmentRoute.get("/patient/:id", authenticateJWT, treatmentController.getPatientTreatments);
-treatmentRoute.get("/:id", authenticateJWT, treatmentController.getTreatmentById);
+treatmentRoute.get("/individual/:id", authenticateJWT, treatmentController.getTreatmentById);
 treatmentRoute.delete("/delete/:id", authenticateJWT, treatmentController.deleteTreatment);
+treatmentRoute.get("/patientAll", authenticateJWT, treatmentController.getAllTreatment)
 
 export default treatmentRoute;

@@ -24,7 +24,8 @@ export const users = pgTable("users", {
     std_year: varchar('std_year'),
     userType: USER_TYPE_ENUM('user_type'),
     blood_type : BLOOD_GROUP_ENUM('blood_type'),
-    contact_number: varchar('contact_number', {length: 10}).unique().notNull(),
+    date_of_birth: timestamp("date_of_birth"),
+    contact_number: varchar('contact_number', {length: 10}).unique(),
     profile_url: varchar('profile_url', {length: 255})
 })
 
@@ -146,6 +147,7 @@ export const staff_family_members = pgTable("staff_family_members", {
     contact_number: varchar("contact_number", { length: 10 }).unique(), 
     relation: RELATION_ENUM("relation").notNull(),
     date_of_birth: timestamp("date_of_birth"),
+    blood_type : BLOOD_GROUP_ENUM('blood_type'),
     is_active: boolean("is_active").default(true),
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),

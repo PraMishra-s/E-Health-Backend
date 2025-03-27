@@ -2,7 +2,7 @@ export interface RegisterDto {
     name: string;
     student_id?: string;
     email?: string; 
-    contact_number: string;
+    contact_number?: string;
     password?: string;
     confirmPassword?: string; 
     gender: "MALE" | "FEMALE" | "OTHERS";

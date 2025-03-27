@@ -1,0 +1,1 @@
+ALTER TABLE "users" ALTER COLUMN "contact_number" DROP NOT NULL;
