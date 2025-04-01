@@ -217,9 +217,5 @@ export class HaService{
             created_at: record.created_at,
             processed: record.processed
         }));
-    }
-
-
-
-    
+    } 
 }

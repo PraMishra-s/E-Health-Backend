@@ -24,6 +24,7 @@ import inventoryRoutes from "./modules/inventory/inventory.route"
 import illnessRoute from "./modules/illness/illness.route"
 import treatmentRoute from "./modules/treatment/treatment.route"
 import StaffRoute from "./modules/staffFamily/staff.route"
+import haDashboardRoute from "./modules/ha_dashboard/ha_dashboard.route"
 
 
 
@@ -65,6 +66,7 @@ app.use(`${BASE_PATH}/inventory`, inventoryRoutes)
 app.use(`${BASE_PATH}/illness`, illnessRoute)
 app.use(`${BASE_PATH}/treatment`, treatmentRoute)
 app.use(`${BASE_PATH}/staffFamily`, StaffRoute)
+app.use(`${BASE_PATH}/dashboard`, haDashboardRoute)
 
 app.use(errorHandler)
 
