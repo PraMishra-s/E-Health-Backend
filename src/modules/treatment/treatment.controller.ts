@@ -24,6 +24,7 @@ export class TreatmentController{
             );
         }
         const validatedData = createTreatmentSchema.parse(req.body);
+        console.log(validatedData)
         const treatment = await this.treatmentService.addTreatment(userId, validatedData);
 
         return res.status(HTTPSTATUS.OK).json({ message: "Treatment record created.", treatment });

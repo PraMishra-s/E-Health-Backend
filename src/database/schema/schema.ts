@@ -1,7 +1,7 @@
 import { boolean, char, integer, jsonb, pgEnum, pgTable, text, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
 
 export const GENDER_ENUM = pgEnum('gender', ['MALE', 'FEMALE', 'OTHERS'])
-export const BLOOD_GROUP_ENUM = pgEnum('blood_type', ['O+', 'O-', 'A+','A-','B+','B-','AB+','AB-'])
+export const BLOOD_GROUP_ENUM = pgEnum('blood_type', ['O+', 'O-', 'A+','A-','B+','B-','AB+','AB-','Unknown'])
 export const USER_TYPE_ENUM = pgEnum('user_type', ['STUDENT', 'STAFF', 'DEAN', 'NON-STAFF','HA'])
 export const ROLE_ENUM = pgEnum('role', ['STUDENT', 'STAFF', 'DEAN','HA'])
 export const transactionTypeEnum = pgEnum("transaction_type", ["ADDED", "USED_FOR_PATIENT", "REMOVED"]);
@@ -121,7 +121,10 @@ export const patient_treatment_history = pgTable("patient_treatment_history", {
     family_member_id: uuid("family_member_id").references(() => staff_family_members.id, { onDelete: "cascade" }), 
     doctor_id: uuid("doctor_id").references(() => users.id, { onDelete: "set null" }), 
     severity: severityEnum("severity").notNull(), 
-    notes: text("notes"), 
+    notes: text("notes"),
+    blood_pressure: text('blood_pressure'),
+    forward_to_hospital: boolean('forward_to_hospital').default(false),
+    forwarded_by_hospital: boolean('forwarded_by_hospital').default(false),
     created_at: timestamp("created_at").defaultNow(),
 });
 export const treatment_medicines = pgTable("treatment_medicines", {

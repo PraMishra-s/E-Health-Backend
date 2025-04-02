@@ -120,6 +120,7 @@ export class UserService{
                         'gender', staff_family_members.gender,
                         'contact_number', staff_family_members.contact_number,
                         'relation', staff_family_members.relation,
+                        'blood_type', staff_family_members.blood_type,
                         'date_of_birth', staff_family_members.date_of_birth
                     )) FILTER (WHERE staff_family_members.id IS NOT NULL), '[]')`.as("family_members")
                 })

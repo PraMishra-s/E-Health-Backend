@@ -5,7 +5,7 @@ import { desc, eq, sql } from "drizzle-orm";
 
 export class TreatmentService{
   public async addTreatment(userId: string, data: any) {
-      const { patient_id, family_member_id, illness_ids, severity, notes, medicines } = data;
+      const { patient_id, family_member_id, illness_ids, severity, notes, medicines, blood_pressure,forward_to_hospital, forwarded_by_hospital } = data;
 
       if (!patient_id && !family_member_id) {
           throw new BadRequestException("Either patient_id or family_member_id is required.");
@@ -20,7 +20,10 @@ export class TreatmentService{
           family_member_id: family_member_id || null, // Staff family members
           doctor_id: userId,
           severity,
-          notes
+          notes,
+          blood_pressure: blood_pressure || null,
+          forward_to_hospital: forward_to_hospital || false,
+          forwarded_by_hospital: forwarded_by_hospital || false
       }).returning();
 
       if (!treatment) throw new BadRequestException("Failed to create treatment record.");
@@ -73,6 +76,9 @@ export class TreatmentService{
         doctorId: patient_treatment_history.doctor_id,
         severity: patient_treatment_history.severity,
         notes: patient_treatment_history.notes,
+        bloodPressue: patient_treatment_history.blood_pressure,
+        forwardedToHospital: patient_treatment_history.forward_to_hospital,
+        forwardedByHospital: patient_treatment_history.forwarded_by_hospital,
         createdAt: patient_treatment_history.created_at,
         patientName: sql`
           COALESCE(
