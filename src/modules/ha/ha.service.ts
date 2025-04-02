@@ -158,7 +158,7 @@ export class HaService{
 
         return leaveEntry;
     }
-     public async cancelLeave(userId: string) {
+    public async cancelLeave(userId: string) {
         const now = new Date();
         const activeLeaves = await db
         .select()
@@ -217,5 +217,5 @@ export class HaService{
             created_at: record.created_at,
             processed: record.processed
         }));
-    } 
+    }
 }

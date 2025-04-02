@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { LoginDto, RegisterDto, resetPasswordDto } from "../../common/interface/auth.interface";
 import { db } from "../../database/drizzle";
 import { login, users, sessions, ha_details } from "../../database/schema/schema";
@@ -145,7 +145,8 @@ export class AuthService{
             userType: users.userType,
             blood_type: users.blood_type,
             contact_number: users.contact_number,
-            profile_url: users.profile_url
+            profile_url: users.profile_url,
+            HA_Contact_Number: sql`(SELECT contact_number FROM ${users} WHERE ${users.userType} = 'HA' LIMIT 1)`
         })
         .from(users)
         .where(eq(users.id, user[0].user_id))

@@ -225,6 +225,27 @@
       "when": 1743597758802,
       "tag": "0031_sour_the_enforcers",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1743608144658,
+      "tag": "0032_ordinary_saracen",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1743608185519,
+      "tag": "0033_modern_aaron_stack",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1743608331460,
+      "tag": "0034_tiresome_amazoness",
+      "breakpoints": true
     }
   ]
 }
