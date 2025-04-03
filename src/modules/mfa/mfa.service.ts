@@ -128,7 +128,8 @@ export class MFAService{
 
         const accessToken = signJwtToken({
             userId: user.user_id,
-            sessionId
+            sessionId,
+            userType: user.role!,
         });
 
         const refreshToken = signJwtToken(

@@ -3,7 +3,8 @@ import { config } from "../../config/app.config";
 
 export type AccessTPayload = {
     userId: string;
-    sessionId: string 
+    sessionId: string;
+    userType: string; 
 }
 export type RefreshTPayload = {
     sessionId: string;

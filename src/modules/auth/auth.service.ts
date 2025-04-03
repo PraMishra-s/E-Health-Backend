@@ -215,7 +215,8 @@ export class AuthService{
 
         const accessToken = signJwtToken({
             userId: user[0].user_id,
-            sessionId
+            sessionId,
+            userType: user[0].role!
         })
         const refreshToken = signJwtToken(
         {
