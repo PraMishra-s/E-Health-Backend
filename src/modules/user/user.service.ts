@@ -1,6 +1,6 @@
 import { eq, sql } from "drizzle-orm";
 import { db } from "../../database/drizzle";
-import { login, staff_family_members, users } from "../../database/schema/schema";
+import { login, programmes, staff_family_members, users } from "../../database/schema/schema";
 import { BadRequestException, InternalServerException, NotFoundException } from "../../common/utils/catch-errors";
 import { compareValue, hashValue } from "../../common/utils/bcrypt";
 import { ErrorCode } from "../../common/enums/error-code.enum";
@@ -128,6 +128,18 @@ export class UserService{
                 .leftJoin(staff_family_members, eq(users.id, staff_family_members.staff_id)) // ✅ Join family members
                 .groupBy(users.id); // ✅ Group by user ID to avoid duplicates
 
+        } catch (error) {
+            throw new InternalServerException(
+                "Failed to fetch users",
+                ErrorCode.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+    public async getProgrammes() {
+        try {
+            return await db
+                .select().from(programmes)
+                   
         } catch (error) {
             throw new InternalServerException(
                 "Failed to fetch users",

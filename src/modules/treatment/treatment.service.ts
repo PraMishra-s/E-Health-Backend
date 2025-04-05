@@ -1,7 +1,7 @@
 import { BadRequestException, NotFoundException } from "../../common/utils/catch-errors";
 import { db } from "../../database/drizzle";
 import { illnesses, inventory_transactions, medicines, patient_treatment_history, staff_family_members, treatment_illnesses, treatment_medicines, users } from "../../database/schema/schema";
-import { desc, eq, sql, or, inArray } from "drizzle-orm";
+import { desc, eq, sql, or, inArray, isNotNull, and } from "drizzle-orm";
 
 export class TreatmentService{
   public async addTreatment(userId: string, data: any) {
@@ -48,7 +48,7 @@ export class TreatmentService{
   }
 
 
-    public async updateTreatment(treatmentId: string, data: any) {
+  public async updateTreatment(treatmentId: string, data: any) {
         const [updatedTreatment] = await db
             .update(patient_treatment_history)
             .set(data)
@@ -57,110 +57,110 @@ export class TreatmentService{
 
         if (!updatedTreatment) throw new NotFoundException("Treatment record not found.");
         return updatedTreatment;
-    }
+  }
 
 
-    public async getPatientTreatments(patientId: string) {
-        // Fetch all family members linked to the staff user (if applicable)
-        const familyMembers = await db
-            .select({ familyMemberId: staff_family_members.id })
-            .from(staff_family_members)
-            .where(eq(staff_family_members.staff_id, patientId));
+  public async getPatientTreatments(patientId: string) {
+      // Fetch all family members linked to the staff user (if applicable)
+      const familyMembers = await db
+          .select({ familyMemberId: staff_family_members.id })
+          .from(staff_family_members)
+          .where(eq(staff_family_members.staff_id, patientId));
 
-        // Extract family member IDs
-        const familyMemberIds = familyMembers.map(fm => fm.familyMemberId);
+      // Extract family member IDs
+      const familyMemberIds = familyMembers.map(fm => fm.familyMemberId);
 
-        return await db
-            .select({
-                treatmentId: patient_treatment_history.id,
-                patientId: patient_treatment_history.patient_id,
-                familyMemberId: patient_treatment_history.family_member_id,
-                doctorId: patient_treatment_history.doctor_id,
-                severity: patient_treatment_history.severity,
-                notes: patient_treatment_history.notes,
-                bloodPressue: patient_treatment_history.blood_pressure,
-                forwardedToHospital: patient_treatment_history.forward_to_hospital,
-                forwardedByHospital: patient_treatment_history.forwarded_by_hospital,
-                createdAt: patient_treatment_history.created_at,
-                patientName: sql`
-                  COALESCE(${users.name}, ${staff_family_members.name})
-                `,
-                patientGender: sql`
-                  COALESCE(${users.gender}, ${staff_family_members.gender})
-                `,
-                patientBloodType: sql`
-                  COALESCE(${users.blood_type}, ${staff_family_members.blood_type})
-                `,
-                patientContactNumber: sql`
-                  COALESCE(${users.contact_number}, ${staff_family_members.contact_number})
-                `,
-                patientDateOfBirth: sql`
-                  COALESCE(${users.date_of_birth}, ${staff_family_members.date_of_birth})
-                `,
-                patientType: sql`
-                  CASE 
-                    WHEN ${users.id} IS NOT NULL THEN 'PATIENT'
-                    WHEN ${staff_family_members.id} IS NOT NULL THEN 'FAMILY_MEMBER'
-                    ELSE 'UNKNOWN'
-                  END
-                `,
-                medicines: sql`(
-                  SELECT json_agg(json_build_object(
-                    'medicineId', ${medicines.id},
-                    'medicineName', ${medicines.name},
-                    'medicineCount', COALESCE(
-                      (
-                        SELECT SUM(${inventory_transactions.change})
-                        FROM ${inventory_transactions}
-                        WHERE 
-                          ${inventory_transactions.medicine_id} = ${medicines.id} AND
-                          (${inventory_transactions.patient_id} = ${patient_treatment_history.patient_id} OR
-                          ${inventory_transactions.family_member_id} = ${patient_treatment_history.family_member_id}) AND
-                          ${inventory_transactions.type} = 'USED_FOR_PATIENT'
-                      ), 
-                      0
-                    )
-                  ))
-                  FROM ${treatment_medicines}
-                  LEFT JOIN ${medicines} ON ${treatment_medicines.medicine_id} = ${medicines.id}
-                  WHERE ${treatment_medicines.treatment_id} = ${patient_treatment_history.id}
-                )`,
-                illnesses: sql`(
-                  SELECT json_agg(json_build_object(
-                    'illnessId', ${illnesses.id},
-                    'illnessName', ${illnesses.name},
-                    'illnessType', ${illnesses.type},
-                    'illnessDescription', ${illnesses.description}
-                  ))
-                  FROM ${treatment_illnesses}
-                  LEFT JOIN ${illnesses} ON ${treatment_illnesses.illness_id} = ${illnesses.id}
-                  WHERE ${treatment_illnesses.treatment_id} = ${patient_treatment_history.id}
-                )`,
-                medicinesUsedCount: sql`(
-                  SELECT COALESCE(SUM(${inventory_transactions.change}), 0)
-                  FROM ${inventory_transactions}
-                  WHERE 
-                    (${inventory_transactions.patient_id} = ${patient_treatment_history.patient_id} OR
-                    ${inventory_transactions.family_member_id} = ${patient_treatment_history.family_member_id})
-                    AND ${inventory_transactions.type} = 'USED_FOR_PATIENT'
-                )`,
-            })
-            .from(patient_treatment_history)
-            .leftJoin(users, eq(users.id, patient_treatment_history.patient_id))
-            .leftJoin(
-                staff_family_members, 
-                eq(staff_family_members.id, patient_treatment_history.family_member_id)
-            )
-            .where(
-                or(
-                    eq(patient_treatment_history.patient_id, patientId), // Staff's own treatments
-                    familyMemberIds.length > 0 ? inArray(patient_treatment_history.family_member_id, familyMemberIds) : undefined // Family members' treatments
-                )
-            )
-            .orderBy(desc(patient_treatment_history.created_at));
+      return await db
+          .select({
+              treatmentId: patient_treatment_history.id,
+              patientId: patient_treatment_history.patient_id,
+              familyMemberId: patient_treatment_history.family_member_id,
+              doctorId: patient_treatment_history.doctor_id,
+              severity: patient_treatment_history.severity,
+              notes: patient_treatment_history.notes,
+              bloodPressue: patient_treatment_history.blood_pressure,
+              forwardedToHospital: patient_treatment_history.forward_to_hospital,
+              forwardedByHospital: patient_treatment_history.forwarded_by_hospital,
+              createdAt: patient_treatment_history.created_at,
+              patientName: sql`
+                COALESCE(${users.name}, ${staff_family_members.name})
+              `,
+              patientGender: sql`
+                COALESCE(${users.gender}, ${staff_family_members.gender})
+              `,
+              patientBloodType: sql`
+                COALESCE(${users.blood_type}, ${staff_family_members.blood_type})
+              `,
+              patientContactNumber: sql`
+                COALESCE(${users.contact_number}, ${staff_family_members.contact_number})
+              `,
+              patientDateOfBirth: sql`
+                COALESCE(${users.date_of_birth}, ${staff_family_members.date_of_birth})
+              `,
+              patientType: sql`
+                CASE 
+                  WHEN ${users.id} IS NOT NULL THEN 'PATIENT'
+                  WHEN ${staff_family_members.id} IS NOT NULL THEN 'FAMILY_MEMBER'
+                  ELSE 'UNKNOWN'
+                END
+              `,
+              medicines: sql`(
+                SELECT json_agg(json_build_object(
+                  'medicineId', ${medicines.id},
+                  'medicineName', ${medicines.name},
+                  'medicineCount', COALESCE(
+                    (
+                      SELECT SUM(${inventory_transactions.change})
+                      FROM ${inventory_transactions}
+                      WHERE 
+                        ${inventory_transactions.medicine_id} = ${medicines.id} AND
+                        (${inventory_transactions.patient_id} = ${patient_treatment_history.patient_id} OR
+                        ${inventory_transactions.family_member_id} = ${patient_treatment_history.family_member_id}) AND
+                        ${inventory_transactions.type} = 'USED_FOR_PATIENT'
+                    ), 
+                    0
+                  )
+                ))
+                FROM ${treatment_medicines}
+                LEFT JOIN ${medicines} ON ${treatment_medicines.medicine_id} = ${medicines.id}
+                WHERE ${treatment_medicines.treatment_id} = ${patient_treatment_history.id}
+              )`,
+              illnesses: sql`(
+                SELECT json_agg(json_build_object(
+                  'illnessId', ${illnesses.id},
+                  'illnessName', ${illnesses.name},
+                  'illnessType', ${illnesses.type},
+                  'illnessDescription', ${illnesses.description}
+                ))
+                FROM ${treatment_illnesses}
+                LEFT JOIN ${illnesses} ON ${treatment_illnesses.illness_id} = ${illnesses.id}
+                WHERE ${treatment_illnesses.treatment_id} = ${patient_treatment_history.id}
+              )`,
+              medicinesUsedCount: sql`(
+                SELECT COALESCE(SUM(${inventory_transactions.change}), 0)
+                FROM ${inventory_transactions}
+                WHERE 
+                  (${inventory_transactions.patient_id} = ${patient_treatment_history.patient_id} OR
+                  ${inventory_transactions.family_member_id} = ${patient_treatment_history.family_member_id})
+                  AND ${inventory_transactions.type} = 'USED_FOR_PATIENT'
+              )`,
+          })
+          .from(patient_treatment_history)
+          .leftJoin(users, eq(users.id, patient_treatment_history.patient_id))
+          .leftJoin(
+              staff_family_members, 
+              eq(staff_family_members.id, patient_treatment_history.family_member_id)
+          )
+          .where(
+              or(
+                  eq(patient_treatment_history.patient_id, patientId), // Staff's own treatments
+                  familyMemberIds.length > 0 ? inArray(patient_treatment_history.family_member_id, familyMemberIds) : undefined // Family members' treatments
+              )
+          )
+          .orderBy(desc(patient_treatment_history.created_at));
     }
     
-   public async getAllTreatment(){
+  public async getAllTreatment(){
     return await db
       .select({
         treatmentId: patient_treatment_history.id,
@@ -173,6 +173,7 @@ export class TreatmentService{
         forwardedToHospital: patient_treatment_history.forward_to_hospital,
         forwardedByHospital: patient_treatment_history.forwarded_by_hospital,
         createdAt: patient_treatment_history.created_at,
+        departmentId: sql`COALESCE(${users.department_id}, NULL)`,
         patientName: sql`
           COALESCE(
             ${users.name}, 
@@ -260,8 +261,35 @@ export class TreatmentService{
       .orderBy(desc(patient_treatment_history.created_at));
   }
 
+  public async getAllStudents() {
+    return await db
+      .select({
+        treatmentId: patient_treatment_history.id,
+        patientId: patient_treatment_history.patient_id,
+        doctorId: patient_treatment_history.doctor_id,
+        severity: patient_treatment_history.severity,
+        notes: patient_treatment_history.notes,
+        createdAt: patient_treatment_history.created_at,
+        departmentId: sql`COALESCE(${users.department_id}, NULL)`,
+        patientName: users.name,
+        patientGender: users.gender,
+        studentNumber: users.student_id,
+        patientType: sql`'PATIENT'` // Simplify since we're only looking at students
+        // Medicines and illnesses removed
+      })
+      .from(patient_treatment_history)
+      .leftJoin(users, eq(users.id, patient_treatment_history.patient_id))
+      .where(
+        // Only get records for actual students (not family members)
+        and(
+          isNotNull(users.id),
+          eq(users.userType, 'STUDENT')
+        )
+      )
+      .orderBy(desc(patient_treatment_history.created_at));
+  }
 
-    public async getTreatmentById(treatmentId: string) {
+  public async getTreatmentById(treatmentId: string) {
       const treatment = await db
         .select({
           id: patient_treatment_history.id,
@@ -313,14 +341,13 @@ export class TreatmentService{
         throw new NotFoundException('Treatment record not found.');
       }
       return treatment[0]; // Return the first element of the array
-    }
+  }
     // ✅ Delete Treatment
-    public async deleteTreatment(treatmentId: string) {
-        const deleted = await db
-            .delete(patient_treatment_history)
-            .where(eq(patient_treatment_history.id, treatmentId))
-            .returning();
-
+  public async deleteTreatment(treatmentId: string) {
+    const deleted = await db
+        .delete(patient_treatment_history)
+        .where(eq(patient_treatment_history.id, treatmentId))
+        .returning();
         if (!deleted) throw new NotFoundException("Treatment record not found.");
-    }
+  }
 }

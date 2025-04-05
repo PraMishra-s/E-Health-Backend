@@ -12,5 +12,6 @@ treatmentRoute.get("/patient/:id", authenticateJWT, treatmentController.getPatie
 treatmentRoute.get("/individual/:id", authenticateJWT, treatmentController.getTreatmentById);
 treatmentRoute.delete("/delete/:id", authenticateJWT, treatmentController.deleteTreatment);
 treatmentRoute.get("/patientAll", authenticateJWT, treatmentController.getAllTreatment)
+treatmentRoute.get("/students", authenticateJWT, treatmentController.getAllStudents)
 
 export default treatmentRoute;

@@ -78,5 +78,16 @@ export class UserController{
             users: response
          })
     })
+    public getProgrammes = asyncHandler(async (req:Request, res:Response) =>{
+        const userId = (req.user as User)?.id
+        if (!userId){
+            throw new UnauthorizedException("Unauthorized access.")
+        }
+        const response = await this.userService.getProgrammes()
+        return res.status(HTTPSTATUS.OK).json({
+            message: "Programmes Retrieved Succesfully",
+            departments: response
+         })
+    })
 
 }
