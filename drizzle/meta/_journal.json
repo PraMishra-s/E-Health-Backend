@@ -288,6 +288,13 @@
       "when": 1744467985596,
       "tag": "0040_faulty_bulldozer",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1744473853181,
+      "tag": "0041_fixed_calypso",
+      "breakpoints": true
     }
   ]
 }

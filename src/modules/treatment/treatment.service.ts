@@ -1,52 +1,87 @@
 import { BadRequestException, NotFoundException } from "../../common/utils/catch-errors";
 import { db } from "../../database/drizzle";
-import { illnesses, inventory_transactions, medicines, patient_treatment_history, staff_family_members, treatment_illnesses, treatment_medicines, users } from "../../database/schema/schema";
+import { illness_categories, illnesses, inventory_transactions, medicines, mental_health_cases, patient_treatment_history, staff_family_members, treatment_illnesses, treatment_medicines, users } from "../../database/schema/schema";
 import { desc, eq, sql, or, inArray, isNotNull, and } from "drizzle-orm";
 
 export class TreatmentService{
   public async addTreatment(userId: string, data: any) {
-      const { patient_id, family_member_id, illness_ids, severity, notes, medicines, blood_pressure,forward_to_hospital, forwarded_by_hospital } = data;
+    const {
+      patient_id,
+      family_member_id,
+      illness_ids,
+      severity,
+      notes,
+      medicines,
+      blood_pressure,
+      forward_to_hospital,
+      forwarded_by_hospital
+    } = data;
 
-      if (!patient_id && !family_member_id) {
-          throw new BadRequestException("Either patient_id or family_member_id is required.");
-      }
+    if (!patient_id && !family_member_id) {
+      throw new BadRequestException("Either patient_id or family_member_id is required.");
+    }
 
-      if (patient_id && family_member_id) {
-          throw new BadRequestException("Only one of patient_id or family_member_id should be provided.");
-      }
+    if (patient_id && family_member_id) {
+      throw new BadRequestException("Only one of patient_id or family_member_id should be provided.");
+    }
 
-      const [treatment] = await db.insert(patient_treatment_history).values({
-          patient_id: patient_id || null, // College users
-          family_member_id: family_member_id || null, // Staff family members
-          doctor_id: userId,
-          severity,
-          notes,
-          blood_pressure: blood_pressure || null,
-          forward_to_hospital: forward_to_hospital || false,
-          forwarded_by_hospital: forwarded_by_hospital || false
-      }).returning();
+    // ✅ Step 1: Create treatment
+    const [treatment] = await db.insert(patient_treatment_history).values({
+      patient_id: patient_id || null,
+      family_member_id: family_member_id || null,
+      doctor_id: userId,
+      severity,
+      notes,
+      blood_pressure: blood_pressure || null,
+      forward_to_hospital: forward_to_hospital || false,
+      forwarded_by_hospital: forwarded_by_hospital || false
+    }).returning();
 
-      if (!treatment) throw new BadRequestException("Failed to create treatment record.");
+    if (!treatment) throw new BadRequestException("Failed to create treatment record.");
 
-      // ✅ Insert Illnesses associated with the treatment
-      const treatmentIllnesses = illness_ids.map((illnessId: string) => ({
-          treatment_id: treatment.id,
-          illness_id: illnessId,
-      }));
-      await db.insert(treatment_illnesses).values(treatmentIllnesses);
+    // ✅ Step 2: Insert illnesses
+    const treatmentIllnesses = illness_ids.map((illnessId: string) => ({
+      treatment_id: treatment.id,
+      illness_id: illnessId,
+    }));
+    await db.insert(treatment_illnesses).values(treatmentIllnesses);
 
-      // ✅ Insert Prescribed Medicines
-      const prescribedMedicines = medicines.map((med: any) => ({
-          treatment_id: treatment.id,
-          medicine_id: med.medicine_id,
-          batch_id: med.batch_id || null,
-          dosage: med.dosage,
-      }));
-      await db.insert(treatment_medicines).values(prescribedMedicines);
+    // ✅ Step 3: Insert prescribed medicines
+    const prescribedMedicines = medicines.map((med: any) => ({
+      treatment_id: treatment.id,
+      medicine_id: med.medicine_id,
+      batch_id: med.batch_id || null,
+      dosage: med.dosage,
+    }));
+    await db.insert(treatment_medicines).values(prescribedMedicines);
 
-      return treatment;
+    // ✅ Step 4: Check if any illness is mental health-related
+    const [mentalIllness] = await db
+      .select({ illness_id: illnesses.id })
+      .from(illnesses)
+      .leftJoin(illness_categories, eq(illnesses.category_id, illness_categories.id))
+      .where(
+        and(
+          inArray(illnesses.id, illness_ids),
+          eq(illness_categories.name, "Mental Health")
+        )
+      )
+      .limit(1);
+
+    // ✅ Step 5: If mental health case found, insert into mental_health_cases
+    if (mentalIllness) {
+      await db.insert(mental_health_cases).values({
+        user_id: patient_id || null,
+        family_member_id: family_member_id || null,
+        illness_id: mentalIllness.illness_id,
+        treatment_id: treatment.id,
+        is_resolved: false,
+        action_taken: null
+      });
+    }
+
+    return treatment;
   }
-
 
   public async updateTreatment(treatmentId: string, data: any) {
         const [updatedTreatment] = await db

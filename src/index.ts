@@ -26,6 +26,7 @@ import treatmentRoute from "./modules/treatment/treatment.route"
 import StaffRoute from "./modules/staffFamily/staff.route"
 import haDashboardRoute from "./modules/ha_dashboard/ha_dashboard.route"
 import illnessCategoryRoute from "./modules/illness_category/illnessCategory.route"
+import Mentalroute from "./modules/mental_cases/mentalCases.route"
 
 
 
@@ -69,6 +70,7 @@ app.use(`${BASE_PATH}/treatment`, treatmentRoute)
 app.use(`${BASE_PATH}/staffFamily`, StaffRoute)
 app.use(`${BASE_PATH}/dashboard`, haDashboardRoute)
 app.use(`${BASE_PATH}/illnessCategory`, illnessCategoryRoute)
+app.use(`${BASE_PATH}/importantCases`, Mentalroute)
 
 app.use(errorHandler)
 

@@ -163,6 +163,17 @@ export const illness_categories = pgTable("illness_categories", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull().unique(), 
 });
+export const mental_health_cases = pgTable('mental_health_cases', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  treatment_id: uuid('treatment_id').references(() => patient_treatment_history.id, { onDelete: 'cascade' }),
+  user_id: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
+  family_member_id: uuid('family_member_id').references(() => staff_family_members.id, { onDelete: 'set null' }),
+  illness_id: uuid('illness_id').references(() => illnesses.id, { onDelete: 'set null' }),
+  action_taken: text('action_taken'),
+  is_resolved: boolean('is_resolved').default(false),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+});
 
 
 
