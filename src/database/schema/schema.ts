@@ -3,7 +3,7 @@ import { boolean, char, integer, jsonb, pgEnum, pgTable, text, timestamp, uuid, 
 export const GENDER_ENUM = pgEnum('gender', ['MALE', 'FEMALE', 'OTHERS'])
 export const BLOOD_GROUP_ENUM = pgEnum('blood_type', ['O+', 'O-', 'A+','A-','B+','B-','AB+','AB-','Unknown'])
 export const USER_TYPE_ENUM = pgEnum('user_type', ['STUDENT', 'STAFF', 'DEAN', 'NON-STAFF','HA'])
-export const ROLE_ENUM = pgEnum('role', ['STUDENT', 'STAFF', 'DEAN','HA'])
+export const ROLE_ENUM = pgEnum('role', ['STUDENT', 'STAFF', 'DEAN','HA','PREVIOUS_HA'])
 export const transactionTypeEnum = pgEnum("transaction_type", ["ADDED", "USED_FOR_PATIENT", "REMOVED"]);
 export const illnessTypeEnum = pgEnum("illness_type", ["COMMUNICABLE", "NON_COMMUNICABLE"]);
 export const severityEnum = pgEnum("severity", ["MILD", "MODERATE", "SEVERE"]);
@@ -112,6 +112,7 @@ export const illnesses = pgTable("illnesses", {
     id: uuid("id").defaultRandom().primaryKey(),
     name: text("name").notNull(),
     type: illnessTypeEnum("type").notNull(), 
+    category_id: uuid("category_id").references(() => illness_categories.id, { onDelete: "set null" }),
     description: text("description").default(""),
 });
 
@@ -155,6 +156,12 @@ export const staff_family_members = pgTable("staff_family_members", {
     created_at: timestamp("created_at").defaultNow(),
     updated_at: timestamp("updated_at").defaultNow(),
 });
+
+export const illness_categories = pgTable("illness_categories", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull().unique(), 
+});
+
 
 
 

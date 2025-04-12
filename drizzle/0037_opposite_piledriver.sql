@@ -1,0 +1,1 @@
+ALTER TABLE "illness_categories" DROP COLUMN "description";

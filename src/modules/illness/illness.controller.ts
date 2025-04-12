@@ -1,4 +1,4 @@
-import { illnessSchema, updateIllnessSchema } from "../../common/validators/illness.validator";
+import { createIllnessCategorySchema, illnessSchema, updateIllnessCategorySchema, updateIllnessSchema } from "../../common/validators/illness.validator";
 import { uuidSchema } from "../../common/validators/inventory.validator";
 import { HTTPSTATUS } from "../../config/http.config";
 import { asyncHandler } from "../../middlewares/asyncHandler";
@@ -11,6 +11,7 @@ export class IllnessController{
     constructor(illnessService: IllnessService){
         this.illnessService = illnessService
     }
+
 
     public createIllness = asyncHandler(async (req: Request, res: Response) => {
         const validatedData = illnessSchema.parse(req.body);

@@ -246,6 +246,34 @@
       "when": 1743608331460,
       "tag": "0034_tiresome_amazoness",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1744432118711,
+      "tag": "0035_lovely_baron_zemo",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1744432200540,
+      "tag": "0036_thin_domino",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1744433782377,
+      "tag": "0037_opposite_piledriver",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1744448415523,
+      "tag": "0038_material_northstar",
+      "breakpoints": true
     }
   ]
 }

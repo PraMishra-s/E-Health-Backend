@@ -2,9 +2,10 @@ import { eq } from "drizzle-orm";
 import { ErrorCode } from "../../common/enums/error-code.enum";
 import { NotFoundException } from "../../common/utils/catch-errors";
 import { db } from "../../database/drizzle";
-import { illnesses } from "../../database/schema/schema";
+import { illness_categories, illnesses } from "../../database/schema/schema";
 
 export class IllnessService{
+
     public async createIllness(data: any) {
         const [illness] = await db.insert(illnesses).values(data).returning();
         return illness;
