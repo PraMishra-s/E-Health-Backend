@@ -179,7 +179,7 @@ export class HaService{
             await db
             .update(ha_details)
             .set({ is_onLeave: false, is_available: true })
-            .where(eq(ha_details.ha_id, userId));
+            .where(eq(ha_availability.ha_id, userId));
 
 
             await db
@@ -217,5 +217,74 @@ export class HaService{
             created_at: record.created_at,
             processed: record.processed
         }));
+    }
+    public async getHaDetails() {
+        const haDetails = await db
+            .select({
+                id: ha_details.ha_id,
+                status: ha_details.status,
+                name: users.name,
+                gender: users.gender,
+                contact_number: users.contact_number,
+                email: login.email,
+                is_available: ha_details.is_available,
+                is_onLeave: ha_details.is_onLeave
+            })
+            .from(ha_details)
+            .innerJoin(users, eq(users.id, ha_details.ha_id))
+            .innerJoin(login, eq(login.user_id, users.id))
+            .orderBy(users.name);
+
+        if (!haDetails.length) {
+            throw new NotFoundException("No HA details found.", ErrorCode.AUTH_USER_NOT_FOUND);
+        }
+
+        return haDetails;
+    }
+    public async changeStatus(userId: string, status: 'ACTIVE' | 'INACTIVE') {
+        const haRecord = await db.select().from(ha_details).where(eq(ha_details.ha_id, userId)).limit(1);
+
+        if (!haRecord.length) {
+            throw new NotFoundException("HA details not found.", ErrorCode.AUTH_USER_NOT_FOUND);
+        }
+
+        if (status === 'ACTIVE') {
+            // First, update all other active HAs
+            const activeHas = await db.select().from(ha_details).where(eq(ha_details.status, 'ACTIVE'));
+            
+            for (const ha of activeHas) {
+                // Update user type to PREVIOUS_HA
+                await db.update(users)
+                    .set({ userType: 'PREVIOUS_HA' })
+                    .where(eq(users.id, ha.ha_id));
+
+                // Update login role to PREVIOUS_HA
+                await db.update(login)
+                    .set({ role: 'PREVIOUS_HA' })
+                    .where(eq(login.user_id, ha.ha_id));
+
+                // Set status to INACTIVE
+                await db.update(ha_details)
+                    .set({ status: 'INACTIVE' })
+                    .where(eq(ha_details.ha_id, ha.ha_id));
+            }
+        }
+
+        // Update the specified HA's status, user type, and role
+        await db.update(ha_details)
+            .set({ status })
+            .where(eq(ha_details.ha_id, userId));
+
+        if (status === 'ACTIVE') {
+            await db.update(users)
+                .set({ userType: 'HA' })
+                .where(eq(users.id, userId));
+
+            await db.update(login)
+                .set({ role: 'HA' })
+                .where(eq(login.user_id, userId));
+        }
+
+        return;
     }
 }

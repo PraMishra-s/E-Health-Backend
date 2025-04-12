@@ -11,5 +11,7 @@ userRoutes.put("/update-profile", authenticateJWT, userController.updatePofilePi
 userRoutes.put("/change-password", authenticateJWT,rateLimiter, userController.changePassword)
 userRoutes.get("/users", authenticateJWT, userController.getUsers)
 userRoutes.get("/programmes", authenticateJWT, userController.getProgrammes)
+userRoutes.put("/change-userType/:id", authenticateJWT, userController.changeUserType)
+userRoutes.get("/getStaff", authenticateJWT, userController.getStaff)
 
 export default userRoutes

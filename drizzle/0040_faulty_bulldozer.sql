@@ -1,0 +1,1 @@
+ALTER TYPE "public"."user_type" ADD VALUE 'PREVIOUS_HA';

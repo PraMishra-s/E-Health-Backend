@@ -147,6 +147,49 @@ export class UserService{
             );
         }
     }
+    public async changeUserType(userId: string, type: "STUDENT" | "STAFF" | "DEAN" | "NON-STAFF" | "HA" | "PREVIOUS_HA") {
+        try {
+            // Update both users and login tables
+            const [updatedUser] = await db.update(users)
+                .set({ userType: type })
+                .where(eq(users.id, userId))
+                .returning();
 
+            const loginRole = type === "NON-STAFF" ? "STAFF" : type;
+            await db.update(login)
+                .set({ role: loginRole })
+                .where(eq(login.user_id, userId));
 
+            if (!updatedUser) {
+                throw new NotFoundException("User not found or update failed.");
+            }
+
+            return updatedUser;
+        } catch (error) {
+            throw new InternalServerException(
+                "Failed to update the user type",
+                ErrorCode.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+    public async getStaff() {
+        try {
+            return await db
+                .select({
+                    id: users.id,
+                    name: users.name,
+                    gender: users.gender,
+                    department_id: users.department_id,
+                    userType: users.userType,
+                    contact_number: users.contact_number,
+                })
+                .from(users)
+                .where(sql`${users.userType} IN ('STAFF', 'DEAN')`);
+        } catch (error) {
+            throw new InternalServerException(
+                "Failed to fetch staff members",
+                ErrorCode.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
 }

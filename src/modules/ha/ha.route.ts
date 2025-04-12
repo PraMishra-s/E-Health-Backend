@@ -10,6 +10,8 @@ haRoutes.put("/toggle-availability", authenticateJWT, haController.toggleAvailab
 haRoutes.post("/set-leave", authenticateJWT, haController.setLeave);
 haRoutes.put("/cancel-leave", authenticateJWT, haController.cancelLeave)
 haRoutes.get("/get-leave", authenticateJWT, haController.getLeave)
+haRoutes.get("/get-ha-details", authenticateJWT, haController.getHaDetails)
+haRoutes.put("/change-status/:id", authenticateJWT, haController.changeStatus)
 
 
 

@@ -1,7 +1,8 @@
 import { User } from "../../common/@types";
 import { UnauthorizedException } from "../../common/utils/catch-errors";
 import { emailSchema, registrationSchema } from "../../common/validators/auth.validator";
-import { changePasswordSchema, updateProfilePicSchema, updateUserSchema } from "../../common/validators/user.validator";
+import { uuidSchema } from "../../common/validators/inventory.validator";
+import { changePasswordSchema, changeUserTypeSchema, updateProfilePicSchema, updateUserSchema } from "../../common/validators/user.validator";
 import { HTTPSTATUS } from "../../config/http.config";
 import { asyncHandler } from "../../middlewares/asyncHandler";
 import { UserService } from "./user.service"
@@ -87,6 +88,32 @@ export class UserController{
         return res.status(HTTPSTATUS.OK).json({
             message: "Programmes Retrieved Succesfully",
             departments: response
+         })
+    })
+    public changeUserType = asyncHandler(async (req:Request, res:Response) =>{
+        const userId = (req.user as User)?.id
+        const userType = (req.user as User)?.userType
+        if (!userId || userType != 'HA' && userType != 'DEAN'){
+            return res.status(HTTPSTATUS.UNAUTHORIZED).json({ message: "Unauthorized" });
+         }
+        const id = uuidSchema.parse(req.params.id)
+        const { type } = changeUserTypeSchema.parse(req.body)
+        const response = await this.userService.changeUserType(id, type)
+        return res.status(HTTPSTATUS.OK).json({
+            message: "User Type Changed Succesfully",
+            users: response
+         })
+    })
+    public getStaff = asyncHandler(async (req:Request, res:Response) =>{
+        const userId = (req.user as User)?.id
+        const userType = (req.user as User)?.userType
+        if (!userId || userType != 'HA' && userType != 'DEAN'){
+            return res.status(HTTPSTATUS.UNAUTHORIZED).json({ message: "Unauthorized" });
+         }
+        const response = await this.userService.getStaff()
+        return res.status(HTTPSTATUS.OK).json({
+            message: "Staff Retrieved Succesfully",
+            staff: response
          })
     })
 

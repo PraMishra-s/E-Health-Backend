@@ -21,3 +21,7 @@ export const setLeaveSchema = z.object({
   path: ["end_date"],
 });
 
+export const changeStatusSchema = z.object({
+  status: z.enum(["ACTIVE", "INACTIVE"]),
+})
+

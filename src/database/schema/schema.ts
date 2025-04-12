@@ -2,12 +2,13 @@ import { boolean, char, integer, jsonb, pgEnum, pgTable, text, timestamp, uuid, 
 
 export const GENDER_ENUM = pgEnum('gender', ['MALE', 'FEMALE', 'OTHERS'])
 export const BLOOD_GROUP_ENUM = pgEnum('blood_type', ['O+', 'O-', 'A+','A-','B+','B-','AB+','AB-','Unknown'])
-export const USER_TYPE_ENUM = pgEnum('user_type', ['STUDENT', 'STAFF', 'DEAN', 'NON-STAFF','HA'])
+export const USER_TYPE_ENUM = pgEnum('user_type', ['STUDENT', 'STAFF', 'DEAN', 'NON-STAFF','HA','PREVIOUS_HA'])
 export const ROLE_ENUM = pgEnum('role', ['STUDENT', 'STAFF', 'DEAN','HA','PREVIOUS_HA'])
 export const transactionTypeEnum = pgEnum("transaction_type", ["ADDED", "USED_FOR_PATIENT", "REMOVED"]);
 export const illnessTypeEnum = pgEnum("illness_type", ["COMMUNICABLE", "NON_COMMUNICABLE"]);
 export const severityEnum = pgEnum("severity", ["MILD", "MODERATE", "SEVERE"]);
 export const RELATION_ENUM = pgEnum("relation", ["CHILD", "SPOUSE", "PARENT", "SIBLING", "OTHER"]);
+export const HASTATUS = pgEnum("ha_status", ["ACTIVE", "INACTIVE"]);
 
 export const programmes = pgTable('programmes',{
     programme_id: varchar('programme_id', {length: 10}).unique().notNull().primaryKey(),
@@ -52,6 +53,7 @@ export const ha_details = pgTable("ha_details", {
     secret_key: text("secret_key").notNull(), 
     is_available: boolean("is_available").default(true),
     is_onLeave: boolean("is_on_leave").default(false),
+    status: HASTATUS("status").default("INACTIVE"),
     updated_at: timestamp("updated_at").defaultNow()
 });
 export const ha_availability = pgTable("ha_availability", {

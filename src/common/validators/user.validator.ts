@@ -7,6 +7,9 @@ export const updateUserSchema = z.object({
     blood_type: z.enum(["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"]).optional(),
     department_id: z.string().optional(),
 });
+export const changeUserTypeSchema = z.object({
+    type: z.enum(["STUDENT", "STAFF", "DEAN", "NON-STAFF", "HA"]),
+})
 
 export const changePasswordSchema = z.object({
     currentPassword: z.string().min(6, "Current password is required."),

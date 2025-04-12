@@ -51,12 +51,19 @@ export class AuthService{
             }).returning();
 
         if(newUser){
+            let newRole = ""
+            if(newUser.userType!== "HA"){
+                newRole = newUser.userType === "NON-STAFF" ? "STAFF" : newUser.userType || "STUDENT"
+            }
+            else{
+                newRole = "HA"
+            }
             if (registerData.email && hashedPassword) {
                 await db.insert(login).values({
                     user_id: newUser.id,
                     email: registerData.email,
                     password: hashedPassword,
-                    role: registerData.user_type === "NON-STAFF" ? "STAFF" : registerData.user_type || "STUDENT",
+                    role: newRole as any,
                     verified: false
                 });
             }
