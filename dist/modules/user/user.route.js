@@ -1,0 +1,16 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const jwt_strategy_1 = require("../../common/strageties/jwt.strategy");
+const user_module_1 = require("./user.module");
+const rateLimiter_1 = require("../../middlewares/rateLimiter");
+const userRoutes = (0, express_1.Router)();
+userRoutes.put("/update", jwt_strategy_1.authenticateJWT, user_module_1.userController.updateUserProfile);
+userRoutes.post("/email", rateLimiter_1.rateLimiter, user_module_1.userController.getEmail);
+userRoutes.put("/update-profile", jwt_strategy_1.authenticateJWT, user_module_1.userController.updatePofilePic);
+userRoutes.put("/change-password", jwt_strategy_1.authenticateJWT, rateLimiter_1.rateLimiter, user_module_1.userController.changePassword);
+userRoutes.get("/users", jwt_strategy_1.authenticateJWT, user_module_1.userController.getUsers);
+userRoutes.get("/programmes", jwt_strategy_1.authenticateJWT, user_module_1.userController.getProgrammes);
+userRoutes.put("/change-userType/:id", jwt_strategy_1.authenticateJWT, user_module_1.userController.changeUserType);
+userRoutes.get("/getStaff", jwt_strategy_1.authenticateJWT, user_module_1.userController.getStaff);
+exports.default = userRoutes;

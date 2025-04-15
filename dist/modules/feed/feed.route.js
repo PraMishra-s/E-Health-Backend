@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const feed_module_1 = require("./feed.module");
+const jwt_strategy_1 = require("../../common/strageties/jwt.strategy");
+const feedRoutes = (0, express_1.Router)();
+feedRoutes.post("/create", jwt_strategy_1.authenticateJWT, feed_module_1.feedController.createFeed);
+feedRoutes.put("/update/:id", jwt_strategy_1.authenticateJWT, feed_module_1.feedController.updateFeed);
+feedRoutes.delete("/delete/:id", jwt_strategy_1.authenticateJWT, feed_module_1.feedController.deleteFeed);
+feedRoutes.delete("/deleteAll/all", jwt_strategy_1.authenticateJWT, feed_module_1.feedController.deleteAllFeeds);
+feedRoutes.get("/", feed_module_1.feedController.getFeeds);
+exports.default = feedRoutes;

@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const ha_module_1 = require("./ha.module");
+const jwt_strategy_1 = require("../../common/strageties/jwt.strategy");
+const haRoutes = (0, express_1.Router)();
+haRoutes.post("/forgot-password", ha_module_1.haController.forgotPassword);
+haRoutes.put("/update", jwt_strategy_1.authenticateJWT, ha_module_1.haController.changeSecretWord);
+haRoutes.put("/toggle-availability", jwt_strategy_1.authenticateJWT, ha_module_1.haController.toggleAvailability);
+haRoutes.post("/set-leave", jwt_strategy_1.authenticateJWT, ha_module_1.haController.setLeave);
+haRoutes.put("/cancel-leave", jwt_strategy_1.authenticateJWT, ha_module_1.haController.cancelLeave);
+haRoutes.get("/get-leave", jwt_strategy_1.authenticateJWT, ha_module_1.haController.getLeave);
+haRoutes.get("/get-ha-details", jwt_strategy_1.authenticateJWT, ha_module_1.haController.getHaDetails);
+haRoutes.put("/change-status/:id", jwt_strategy_1.authenticateJWT, ha_module_1.haController.changeStatus);
+exports.default = haRoutes;

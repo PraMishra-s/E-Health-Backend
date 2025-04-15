@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const jwt_strategy_1 = require("../../common/strageties/jwt.strategy");
+const mfa_module_1 = require("./mfa.module");
+const mfaRoutes = (0, express_1.Router)();
+mfaRoutes.post("/invoke", jwt_strategy_1.authenticateJWT, mfa_module_1.mfaController.invokeMFASetup);
+mfaRoutes.post("/verify-login", mfa_module_1.mfaController.verifyMFAForLogin);
+mfaRoutes.put("/revoke", jwt_strategy_1.authenticateJWT, mfa_module_1.mfaController.revokeMFA);
+exports.default = mfaRoutes;

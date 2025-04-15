@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const treatment_module_1 = require("./treatment.module");
+const jwt_strategy_1 = require("../../common/strageties/jwt.strategy");
+const treatmentRoute = (0, express_1.Router)();
+treatmentRoute.post("/create/", jwt_strategy_1.authenticateJWT, treatment_module_1.treatmentController.addTreatment);
+treatmentRoute.put("/update/:id", jwt_strategy_1.authenticateJWT, treatment_module_1.treatmentController.updateTreatment);
+treatmentRoute.get("/patient/:id", jwt_strategy_1.authenticateJWT, treatment_module_1.treatmentController.getPatientTreatments);
+treatmentRoute.get("/individual/:id", jwt_strategy_1.authenticateJWT, treatment_module_1.treatmentController.getTreatmentById);
+treatmentRoute.delete("/delete/:id", jwt_strategy_1.authenticateJWT, treatment_module_1.treatmentController.deleteTreatment);
+treatmentRoute.get("/patientAll", jwt_strategy_1.authenticateJWT, treatment_module_1.treatmentController.getAllTreatment);
+treatmentRoute.get("/students", jwt_strategy_1.authenticateJWT, treatment_module_1.treatmentController.getAllStudents);
+exports.default = treatmentRoute;
