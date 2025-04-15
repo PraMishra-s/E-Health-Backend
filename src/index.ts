@@ -39,7 +39,7 @@ const BASE_PATH = config.BASE_PATH
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(cors({
-    origin: true,
+    origin: config.APP_ORIGIN,
     credentials: true
 }))
 app.use(helmet())
