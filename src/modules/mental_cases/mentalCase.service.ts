@@ -16,6 +16,7 @@ export class MentalService{
             name: users.name,
             gender: users.gender,
             contact_number: users.contact_number,
+            std_year: users.std_year,
             department_id: users.department_id,
             email: login.email
         })
