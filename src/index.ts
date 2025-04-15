@@ -74,6 +74,6 @@ app.use(`${BASE_PATH}/importantCases`, Mentalroute)
 
 app.use(errorHandler)
 
-app.listen(process.env.PORT,async () => {
+app.listen(process.env.PORT || 4000,async () => {
     console.log(`Server is running on port ${config.PORT}`);
 });
