@@ -175,6 +175,18 @@ export const mental_health_cases = pgTable('mental_health_cases', {
   updated_at: timestamp('updated_at').defaultNow(),
 });
 
+export const notifications = pgTable("notifications", {
+    id: uuid("id").defaultRandom().primaryKey(),
+    type: text("type").notNull(), 
+    medicine_id: uuid("medicine_id").references(() => medicines.id),
+    message: text("message").notNull(),
+    for_role: ROLE_ENUM('role').default("HA"), 
+    is_read: boolean("is_read").default(false),
+    created_at: timestamp("created_at").defaultNow(),
+    updated_at: timestamp("updated_at").defaultNow() 
+  });
+  
+
 
 
 

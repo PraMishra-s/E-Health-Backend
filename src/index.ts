@@ -27,13 +27,14 @@ import StaffRoute from "./modules/staffFamily/staff.route"
 import haDashboardRoute from "./modules/ha_dashboard/ha_dashboard.route"
 import illnessCategoryRoute from "./modules/illness_category/illnessCategory.route"
 import Mentalroute from "./modules/mental_cases/mentalCases.route"
+import notificationRouter from "./modules/notification/notification.route"
 
 
 
 
 
 const app = express()
-const BASE_PATH = config.BASE_PATH
+const BASE_PATH = config.BASE_PATH as string
 
 
 app.use(express.json())
@@ -71,6 +72,7 @@ app.use(`${BASE_PATH}/staffFamily`, StaffRoute)
 app.use(`${BASE_PATH}/dashboard`, haDashboardRoute)
 app.use(`${BASE_PATH}/illnessCategory`, illnessCategoryRoute)
 app.use(`${BASE_PATH}/importantCases`, Mentalroute)
+app.use(`${BASE_PATH}/notifications`, notificationRouter)
 
 app.use(errorHandler)
 
