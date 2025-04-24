@@ -65,7 +65,7 @@ export class InventoryService{
                     'batch_name', medicine_batches.batch_name,
                     'quantity', medicine_batches.quantity,
                     'expiry_date', medicine_batches.expiry_date
-                )) FILTER (WHERE medicine_batches.id IS NOT NULL)`.as("batches")  // ✅ Aggregate batches into an array
+                )) FILTER (WHERE medicine_batches.id IS NOT NULL AND medicine_batches.is_deleted = false)`.as("batches")  // ✅ Aggregate batches into an array
             })
             .from(medicines)
             .leftJoin(medicine_batches, eq(medicine_batches.medicine_id, medicines.id))  // ✅ Left join to include medicines even if they have no batches
@@ -88,12 +88,22 @@ export class InventoryService{
             })
             .from(medicine_batches)
             .innerJoin(medicines, eq(medicine_batches.medicine_id, medicines.id)) // ✅ Link batch to medicine
-            .where(lt(medicine_batches.expiry_date, new Date()));
+            .where(
+                and(
+                    lt(medicine_batches.expiry_date, new Date()),
+                    eq(medicine_batches.is_deleted, false) 
+                )
+            );
 
         const [{ count }] = await db
             .select({ count: sql<number>`COUNT(*)` })
             .from(medicine_batches)
-            .where(lt(medicine_batches.expiry_date, new Date()));
+            .where(
+                and(
+                    lt(medicine_batches.expiry_date, new Date()),
+                    eq(medicine_batches.is_deleted, false) // ✅ Only count non-deleted batches
+                )
+            );
 
         return {
             message: expiredBatches.length > 0 ? "Expired medicines retrieved." : "No expired medicines found.",
@@ -173,7 +183,12 @@ export class InventoryService{
         const batches = await db
             .select()
             .from(medicine_batches)
-            .where(eq(medicine_batches.medicine_id, medicine_id))
+            .where(
+                and(
+                    eq(medicine_batches.medicine_id, medicine_id),
+                    eq(medicine_batches.is_deleted, false), 
+                )
+            )
             .orderBy(medicine_batches.expiry_date) // FIFO: Oldest batch first
             .limit(5); // Limit to reduce DB calls
 
@@ -337,7 +352,9 @@ export class InventoryService{
             user_id: userId,
         }).returning(); 
         // ✅ Delete the batch
-        await db.delete(medicine_batches).where(eq(medicine_batches.id, batch_id));
+        await db.update(medicine_batches)
+        .set({ is_deleted: true })
+        .where(eq(medicine_batches.id, batch_id));
 
         return transaction;
     }

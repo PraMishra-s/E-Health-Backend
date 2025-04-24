@@ -302,6 +302,20 @@
       "when": 1745427276021,
       "tag": "0042_opposite_thunderbolt_ross",
       "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1745466913135,
+      "tag": "0043_massive_white_tiger",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1745506915731,
+      "tag": "0044_curious_power_man",
+      "breakpoints": true
     }
   ]
 }

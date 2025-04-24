@@ -19,6 +19,7 @@ import userRoutes from "./modules/user/user.route"
 import haRoutes from "./modules/ha/ha.route"
 import "./common/scheduler/endLeaveScheduler"
 import "./common/scheduler/haScheduler"
+import "./common/scheduler/notifcationScheduler"
 import feedRoutes from "./modules/feed/feed.route"
 import inventoryRoutes from "./modules/inventory/inventory.route"
 import illnessRoute from "./modules/illness/illness.route"
@@ -28,6 +29,8 @@ import haDashboardRoute from "./modules/ha_dashboard/ha_dashboard.route"
 import illnessCategoryRoute from "./modules/illness_category/illnessCategory.route"
 import Mentalroute from "./modules/mental_cases/mentalCases.route"
 import notificationRouter from "./modules/notification/notification.route"
+import { initSocket } from "./common/service/socket.manager"
+import http from "http"; 
 
 
 
@@ -76,6 +79,11 @@ app.use(`${BASE_PATH}/notifications`, notificationRouter)
 
 app.use(errorHandler)
 
-app.listen(config.PORT,async () => {
+const server = http.createServer(app)
+initSocket(server);
+
+
+
+server.listen(config.PORT,async () => {
     console.log(`Server is running on port ${config.PORT}`);
 });

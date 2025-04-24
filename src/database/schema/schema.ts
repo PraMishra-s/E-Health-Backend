@@ -107,6 +107,7 @@ export const medicine_batches = pgTable("medicine_batches", {
     medicine_id: uuid("medicine_id").references(() => medicines.id, { onDelete: "cascade" }),
     batch_name: text("batch_name").default("Batch 1").notNull(),
     quantity: integer("quantity").notNull(),
+    is_deleted: boolean("is_deleted").default(false),
     expiry_date: timestamp("expiry_date").notNull(),
     created_at: timestamp("created_at").defaultNow(),
 });
@@ -179,6 +180,7 @@ export const notifications = pgTable("notifications", {
     id: uuid("id").defaultRandom().primaryKey(),
     type: text("type").notNull(), 
     medicine_id: uuid("medicine_id").references(() => medicines.id),
+    batch_id: uuid("batch_id").references(() => medicine_batches.id),
     message: text("message").notNull(),
     for_role: ROLE_ENUM('role').default("HA"), 
     is_read: boolean("is_read").default(false),
