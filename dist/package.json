@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "dev": "ts-node-dev --files src/index.ts",
-    "build": "tsc && copy .\\package.json .\\dist",
+    "build": "tsc && cp package.json dist/",
     "start": "node dist/index.js",
     "db:generate": "npx drizzle-kit generate",
     "db:migrate": "npx drizzle-kit migrate",
@@ -36,6 +36,7 @@
     "nodemailer": "^6.10.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
+    "socket.io": "^4.8.1",
     "typescript": "^5.7.3",
     "uuid": "^11.0.5",
     "zod": "^3.24.2"
@@ -47,12 +48,18 @@
     "@types/cors": "^2.8.17",
     "@types/dotenv": "^6.1.1",
     "@types/express": "^5.0.0",
+    "@types/jest": "^29.5.14",
     "@types/jsonwebtoken": "^9.0.8",
     "@types/morgan": "^1.9.9",
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^6.4.17",
     "@types/passport": "^1.0.17",
     "@types/passport-jwt": "^4.0.1",
-    "ts-node-dev": "^2.0.0"
+    "@types/supertest": "^6.0.3",
+    "jest": "^29.7.0",
+    "supertest": "^7.1.0",
+    "ts-jest": "^29.3.2",
+    "ts-node-dev": "^2.0.0",
+    "vitest": "^3.1.2"
   }
 }

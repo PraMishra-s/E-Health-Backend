@@ -32,6 +32,7 @@ const user_route_1 = __importDefault(require("./modules/user/user.route"));
 const ha_route_1 = __importDefault(require("./modules/ha/ha.route"));
 require("./common/scheduler/endLeaveScheduler");
 require("./common/scheduler/haScheduler");
+require("./common/scheduler/notifcationScheduler");
 const feed_route_1 = __importDefault(require("./modules/feed/feed.route"));
 const inventory_route_1 = __importDefault(require("./modules/inventory/inventory.route"));
 const illness_route_1 = __importDefault(require("./modules/illness/illness.route"));
@@ -40,6 +41,9 @@ const staff_route_1 = __importDefault(require("./modules/staffFamily/staff.route
 const ha_dashboard_route_1 = __importDefault(require("./modules/ha_dashboard/ha_dashboard.route"));
 const illnessCategory_route_1 = __importDefault(require("./modules/illness_category/illnessCategory.route"));
 const mentalCases_route_1 = __importDefault(require("./modules/mental_cases/mentalCases.route"));
+const notification_route_1 = __importDefault(require("./modules/notification/notification.route"));
+const socket_manager_1 = require("./common/service/socket.manager");
+const http_1 = __importDefault(require("http"));
 const app = (0, express_1.default)();
 const BASE_PATH = app_config_1.config.BASE_PATH;
 app.use(express_1.default.json());
@@ -71,7 +75,10 @@ app.use(`${BASE_PATH}/staffFamily`, staff_route_1.default);
 app.use(`${BASE_PATH}/dashboard`, ha_dashboard_route_1.default);
 app.use(`${BASE_PATH}/illnessCategory`, illnessCategory_route_1.default);
 app.use(`${BASE_PATH}/importantCases`, mentalCases_route_1.default);
+app.use(`${BASE_PATH}/notifications`, notification_route_1.default);
 app.use(errorHandler_1.errorHandler);
-app.listen(app_config_1.config.PORT, () => __awaiter(void 0, void 0, void 0, function* () {
+const server = http_1.default.createServer(app);
+(0, socket_manager_1.initSocket)(server);
+server.listen(app_config_1.config.PORT, () => __awaiter(void 0, void 0, void 0, function* () {
     console.log(`Server is running on port ${app_config_1.config.PORT}`);
 }));

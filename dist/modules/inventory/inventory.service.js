@@ -83,7 +83,7 @@ class InventoryService {
                     'batch_name', medicine_batches.batch_name,
                     'quantity', medicine_batches.quantity,
                     'expiry_date', medicine_batches.expiry_date
-                )) FILTER (WHERE medicine_batches.id IS NOT NULL)`.as("batches") // ✅ Aggregate batches into an array
+                )) FILTER (WHERE medicine_batches.id IS NOT NULL AND medicine_batches.is_deleted = false)`.as("batches") // ✅ Aggregate batches into an array
             })
                 .from(schema_1.medicines)
                 .leftJoin(schema_1.medicine_batches, (0, drizzle_orm_1.eq)(schema_1.medicine_batches.medicine_id, schema_1.medicines.id)) // ✅ Left join to include medicines even if they have no batches
@@ -105,11 +105,12 @@ class InventoryService {
             })
                 .from(schema_1.medicine_batches)
                 .innerJoin(schema_1.medicines, (0, drizzle_orm_1.eq)(schema_1.medicine_batches.medicine_id, schema_1.medicines.id)) // ✅ Link batch to medicine
-                .where((0, drizzle_orm_1.lt)(schema_1.medicine_batches.expiry_date, new Date()));
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.lt)(schema_1.medicine_batches.expiry_date, new Date()), (0, drizzle_orm_1.eq)(schema_1.medicine_batches.is_deleted, false)));
             const [{ count }] = yield drizzle_1.db
                 .select({ count: (0, drizzle_orm_1.sql) `COUNT(*)` })
                 .from(schema_1.medicine_batches)
-                .where((0, drizzle_orm_1.lt)(schema_1.medicine_batches.expiry_date, new Date()));
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.lt)(schema_1.medicine_batches.expiry_date, new Date()), (0, drizzle_orm_1.eq)(schema_1.medicine_batches.is_deleted, false) // ✅ Only count non-deleted batches
+            ));
             return {
                 message: expiredBatches.length > 0 ? "Expired medicines retrieved." : "No expired medicines found.",
                 totalExpiredBatches: count || 0,
@@ -188,7 +189,7 @@ class InventoryService {
             const batches = yield drizzle_1.db
                 .select()
                 .from(schema_1.medicine_batches)
-                .where((0, drizzle_orm_1.eq)(schema_1.medicine_batches.medicine_id, medicine_id))
+                .where((0, drizzle_orm_1.and)((0, drizzle_orm_1.eq)(schema_1.medicine_batches.medicine_id, medicine_id), (0, drizzle_orm_1.eq)(schema_1.medicine_batches.is_deleted, false)))
                 .orderBy(schema_1.medicine_batches.expiry_date) // FIFO: Oldest batch first
                 .limit(5); // Limit to reduce DB calls
             let remainingToDeduct = quantity;
@@ -337,7 +338,9 @@ class InventoryService {
                 user_id: userId,
             }).returning();
             // ✅ Delete the batch
-            yield drizzle_1.db.delete(schema_1.medicine_batches).where((0, drizzle_orm_1.eq)(schema_1.medicine_batches.id, batch_id));
+            yield drizzle_1.db.update(schema_1.medicine_batches)
+                .set({ is_deleted: true })
+                .where((0, drizzle_orm_1.eq)(schema_1.medicine_batches.id, batch_id));
             return transaction;
         });
     }

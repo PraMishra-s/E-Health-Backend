@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const jwt_strategy_1 = require("../../common/strageties/jwt.strategy");
+const notification_module_1 = require("./notification.module");
+const notificationRouter = (0, express_1.Router)();
+notificationRouter.post("/create/", jwt_strategy_1.authenticateJWT, notification_module_1.notificationController.createNotification);
+notificationRouter.get("/", jwt_strategy_1.authenticateJWT, notification_module_1.notificationController.getAll);
+notificationRouter.put("/read/:id", jwt_strategy_1.authenticateJWT, notification_module_1.notificationController.markAsRead);
+notificationRouter.delete("/delete/:id", jwt_strategy_1.authenticateJWT, notification_module_1.notificationController.deleteNotification);
+exports.default = notificationRouter;

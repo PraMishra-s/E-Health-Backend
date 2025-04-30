@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.mental_health_cases = exports.illness_categories = exports.staff_family_members = exports.treatment_illnesses = exports.treatment_medicines = exports.patient_treatment_history = exports.illnesses = exports.medicine_batches = exports.inventory_transactions = exports.medicines = exports.medicine_categories = exports.feeds = exports.ha_availability = exports.ha_details = exports.sessions = exports.login = exports.users = exports.programmes = exports.HASTATUS = exports.RELATION_ENUM = exports.severityEnum = exports.illnessTypeEnum = exports.transactionTypeEnum = exports.ROLE_ENUM = exports.USER_TYPE_ENUM = exports.BLOOD_GROUP_ENUM = exports.GENDER_ENUM = void 0;
+exports.notifications = exports.mental_health_cases = exports.illness_categories = exports.staff_family_members = exports.treatment_illnesses = exports.treatment_medicines = exports.patient_treatment_history = exports.illnesses = exports.medicine_batches = exports.inventory_transactions = exports.medicines = exports.medicine_categories = exports.feeds = exports.ha_availability = exports.ha_details = exports.sessions = exports.login = exports.users = exports.programmes = exports.HASTATUS = exports.RELATION_ENUM = exports.severityEnum = exports.illnessTypeEnum = exports.transactionTypeEnum = exports.ROLE_ENUM = exports.USER_TYPE_ENUM = exports.BLOOD_GROUP_ENUM = exports.GENDER_ENUM = void 0;
 const pg_core_1 = require("drizzle-orm/pg-core");
 exports.GENDER_ENUM = (0, pg_core_1.pgEnum)('gender', ['MALE', 'FEMALE', 'OTHERS']);
 exports.BLOOD_GROUP_ENUM = (0, pg_core_1.pgEnum)('blood_type', ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'Unknown']);
@@ -102,6 +102,7 @@ exports.medicine_batches = (0, pg_core_1.pgTable)("medicine_batches", {
     medicine_id: (0, pg_core_1.uuid)("medicine_id").references(() => exports.medicines.id, { onDelete: "cascade" }),
     batch_name: (0, pg_core_1.text)("batch_name").default("Batch 1").notNull(),
     quantity: (0, pg_core_1.integer)("quantity").notNull(),
+    is_deleted: (0, pg_core_1.boolean)("is_deleted").default(false),
     expiry_date: (0, pg_core_1.timestamp)("expiry_date").notNull(),
     created_at: (0, pg_core_1.timestamp)("created_at").defaultNow(),
 });
@@ -163,4 +164,15 @@ exports.mental_health_cases = (0, pg_core_1.pgTable)('mental_health_cases', {
     is_resolved: (0, pg_core_1.boolean)('is_resolved').default(false),
     created_at: (0, pg_core_1.timestamp)('created_at').defaultNow(),
     updated_at: (0, pg_core_1.timestamp)('updated_at').defaultNow(),
+});
+exports.notifications = (0, pg_core_1.pgTable)("notifications", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    type: (0, pg_core_1.text)("type").notNull(),
+    medicine_id: (0, pg_core_1.uuid)("medicine_id").references(() => exports.medicines.id),
+    batch_id: (0, pg_core_1.uuid)("batch_id").references(() => exports.medicine_batches.id),
+    message: (0, pg_core_1.text)("message").notNull(),
+    for_role: (0, exports.ROLE_ENUM)('role').default("HA"),
+    is_read: (0, pg_core_1.boolean)("is_read").default(false),
+    created_at: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+    updated_at: (0, pg_core_1.timestamp)("updated_at").defaultNow()
 });
