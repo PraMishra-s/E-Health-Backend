@@ -55,10 +55,10 @@ To guide future developers in understanding and interacting with the API’s 83 
   ```json
   {
     "name": "John Doe",
-    "email": "02210217.cst@rub.edu.bt",
+    "email": "02210XXX.cst@rub.edu.bt",
     "password": "Password123!",
     "userType": "STUDENT",
-    "student_id": "02210217",
+    "student_id": "02210XXX",
     "gender": "MALE",
     "department_id": "dep-1",
     "std_year": "3",
@@ -76,7 +76,7 @@ To guide future developers in understanding and interacting with the API’s 83 
       "user": {
         "id": "123e4567-e89b-12d3-a456-426614174000",
         "name": "John Doe",
-        "email": "02210217.cst@rub.edu.bt",
+        "email": "02210XXX.cst@rub.edu.bt",
         "userType": "STUDENT"
       }
     }
@@ -86,7 +86,7 @@ To guide future developers in understanding and interacting with the API’s 83 
   ```bash
   curl -X POST /api/v1/auth/register \
     -H "Content-Type: application/json" \
-    -d '{"name":"John Doe","email":"02210217.cst@rub.edu.bt","password":"Password123!","userType":"STUDENT","student_id":"02210217","role":"STUDENT"}'
+    -d '{"name":"John Doe","email":"02210XXX.cst@rub.edu.bt","password":"Password123!","userType":"STUDENT","student_id":"02210XXX","role":"STUDENT"}'
   ```
 
 #### POST /api/v1/auth/login
@@ -96,7 +96,7 @@ To guide future developers in understanding and interacting with the API’s 83 
 - **Request Body**:
   ```json
   {
-    "email": "02210217.cst@rub.edu.bt",
+    "email": "02210XXX.cst@rub.edu.bt",
     "password": "Password123!"
   }
   ```
@@ -108,7 +108,7 @@ To guide future developers in understanding and interacting with the API’s 83 
       "user": {
         "id": "123e4567-e89b-12d3-a456-426614174000",
         "name": "John Doe",
-        "email": "02210217.cst@rub.edu.bt",
+        "email": "02210XXX.cst@rub.edu.bt",
         "userType": "STUDENT"
       }
     }
@@ -119,7 +119,7 @@ To guide future developers in understanding and interacting with the API’s 83 
   ```bash
   curl -X POST /api/v1/auth/login \
     -H "Content-Type: application/json" \
-    -d '{"email":"02210217.cst@rub.edu.bt","password":"Password123!"}'
+    -d '{"email":"02210XXX.cst@rub.edu.bt","password":"Password123!"}'
   ```
 
 #### POST /api/v1/auth/refresh
@@ -782,7 +782,7 @@ To guide future developers in understanding and interacting with the API’s 83 
     "message": "MFA has been enabled successfully.",
     "user": {
       "id": "21fe03b1-b358-4fe7-989c-2a8d103783a9",
-      "email": "02210217.cst@rub.edu.bt",
+      "email": "02210XXX.cst@rub.edu.bt",
       "role": "HA",
       "verified": true,
       "mfa_required": true
@@ -802,7 +802,7 @@ To guide future developers in understanding and interacting with the API’s 83 
 - **Request Body**:
   ```json
   {
-    "email": "02210217.cst@rub.edu.bt",
+    "email": "02210XXX.cst@rub.edu.bt",
     "code": "123456"
   }
   ```
@@ -816,7 +816,7 @@ To guide future developers in understanding and interacting with the API’s 83 
   ```bash
   curl -X POST /api/v1/mfa/verify-login \
     -H "Content-Type: application/json" \
-    -d '{"email":"02210217.cst@rub.edu.bt","code":"123456"}'
+    -d '{"email":"02210XXX.cst@rub.edu.bt","code":"123456"}'
   ```
 
 #### PUT /api/v1/mfa/revoke
@@ -962,7 +962,7 @@ To guide future developers in understanding and interacting with the API’s 83 
         "department_id": "dep-2",
         "blood_type": "O+",
         "contact_number": "1234567890",
-        "student_id": "02210217",
+        "student_id": "02210XXX",
         "std_year": "3",
         "userType": "STUDENT",
         "date_of_birth": "2000-01-01",
@@ -986,7 +986,7 @@ To guide future developers in understanding and interacting with the API’s 83 
 - **Request Body**:
   ```json
   {
-    "email": "02210217.cst@rub.edu.bt"
+    "email": "02210XXX.cst@rub.edu.bt"
   }
   ```
 - **Response**:
@@ -1001,7 +1001,7 @@ To guide future developers in understanding and interacting with the API’s 83 
   ```bash
   curl -X POST /api/v1/users/email \
     -H "Content-Type: application/json" \
-    -d '{"email":"02210217.cst@rub.edu.bt"}'
+    -d '{"email":"02210XXX.cst@rub.edu.bt"}'
   ```
 
 #### PUT /api/v1/users/change-password
