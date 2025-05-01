@@ -1092,7 +1092,7 @@ To guide future developers in understanding and interacting with the API’s 83 
 - `HA`: Health Administrators.
 - `PREVIOUS_HA`: Former Health Administrators.
 
-### Database Tables (Drizzle ORM)
+### Database Tables Schemas (Drizzle ORM)
 - `users`: `{ id, name, email, userType, student_id, gender, department_id, std_year, blood_type, date_of_birth, contact_number, profile_url }`
 - `login`: `{ user_id, email, password }`
 - `ha_details`: `{ id, user_id, secret_key, status }`
@@ -1108,6 +1108,180 @@ To guide future developers in understanding and interacting with the API’s 83 
 - `treatments`: `{ id, patient_id, family_member_id, doctor_id, severity, notes, blood_pressure, forward_to_hospital, forwarded_by_hospital, created_at }`
 - `treatment_illnesses`: `{ treatment_id, illness_id }`
 - `programmes`: `{ programme_id, programme_name }`
+
+
+### Detailed Database Tables
+Below is a list of database tables with their fields and relationships, defined using Drizzle ORM. Relationships are indicated by foreign keys, including cascade behavior where applicable.
+
+#### users
+- **Fields**:
+  - `id`: uuid
+  - `student_id`: varchar
+  - `name`: varchar
+  - `gender`: enum(MALE, FEMALE, OTHERS)
+  - `department_id`: varchar
+  - `std_year`: varchar
+  - `userType`: enum(STUDENT, STAFF, DEAN, NON-STAFF, HA, PREVIOUS_HA)
+  - `blood_type`: enum(O+, O-, A+, A-, B+, B-, AB+, AB-, Unknown)
+  - `date_of_birth`: timestamp
+  - `contact_number`: varchar
+  - `profile_url`: varchar
+- **Relationships**:
+  - Primary key: `id` (uuid, unique)
+  - Referenced by: `login.user_id`, `sessions.user_id`, `ha_details.ha_id`, `feeds.user_id`, `inventory_transactions.user_id`, `inventory_transactions.patient_id`, `patient_treatment_history.patient_id`, `patient_treatment_history.doctor_id`, `staff_family_members.staff_id`, `mental_health_cases.user_id`
+
+#### login
+- **Fields**:
+  - `id`: uuid
+  - `user_id`: uuid
+  - `email`: varchar
+  - `password`: text
+  - `role`: enum(STUDENT, STAFF, DEAN, HA, PREVIOUS_HA)
+  - `verified`: boolean
+  - `mfa_required`: boolean
+- **Relationships**:
+  - Primary key: `id` (uuid, unique)
+  - Foreign key: `user_id` references `users.id` (no cascade)
+
+#### sessions
+- **Fields**:
+  - `id`: uuid
+  - `user_id`: uuid
+  - `user_agent`: varchar
+  - `created_at`: timestamp
+  - `expired_at`: timestamp
+- **Relationships**:
+  - Primary key: `id` (uuid, unique)
+  - Foreign key: `user_id` references `users.id` (no cascade)
+
+#### ha_details
+- **Fields**:
+  - `ha_id`: uuid
+  - `secret_key`: text
+  - `is_available`: boolean
+  - `is_onLeave`: boolean
+  - `status`: enum(ACTIVE, INACTIVE)
+  - `updated_at`: timestamp
+- **Relationships**:
+  - Primary key: `ha_id` (uuid, unique)
+  - Foreign key: `ha_id` references `users.id` (onDelete: cascade)
+  - Referenced by: `ha_availability.ha_id`
+
+#### ha_availability
+- **Fields**:
+  - `id`: uuid
+  - `ha_id`: uuid
+  - `start_date`: timestamp
+  - `end_date`: timestamp
+  - `reason`: text
+  - `created_at`: timestamp
+  - `processed`: boolean
+- **Relationships**:
+  - Primary key: `id` (uuid, unique)
+  - Foreign key: `ha_id` references `ha_details.ha_id` (onDelete: cascade)
+
+#### feeds
+- **Fields**:
+  - `id`: uuid
+  - `user_id`: uuid
+  - `title`: text
+  - `description`: text
+  - `image_urls`: jsonb
+  - `video_url`: jsonb
+  - `created_at`: timestamp
+  - `updated_at`: timestamp
+- **Relationships**:
+  - Primary key: `id` (uuid, unique)
+  - Foreign key: `user_id` references `users.id` (no cascade)
+
+#### medicine_categories
+- **Fields**:
+  - `id`: uuid
+  - `name`: text
+  - `created_at`: timestamp
+- **Relationships**:
+  - Primary key: `id` (uuid, unique)
+  - Referenced by: `medicines.category_id`
+
+#### medicines
+- **Fields**:
+  - `id`: uuid
+  - `name`: text
+  - `category_id`: uuid
+  - `unit`: text
+  - `created_at`: timestamp
+  - `updated_at`: timestamp
+- **Relationships**:
+  - Primary key: `id` (uuid, unique)
+  - Foreign key: `category_id` references `medicine_categories.id` (onDelete: set null)
+  - Referenced by: `medicine_batches.medicine_id`, `inventory_transactions.medicine_id`, `treatment_medicines.medicine_id`, `notifications.medicine_id`
+
+#### medicine_batches
+- **Fields**:
+  - `id`: uuid
+  - `medicine_id`: uuid
+  - `batch_name`: text
+  - `quantity`: integer
+  - `is_deleted`: boolean
+  - `expiry_date`: timestamp
+  - `created_at`: timestamp
+- **Relationships**:
+  - Primary key: `id` (uuid, unique)
+  - Foreign key: `medicine_id` references `medicines.id` (onDelete: cascade)
+  - Referenced by: `inventory_transactions.batch_id`, `treatment_medicines.batch_id`, `notifications.batch_id`
+
+#### inventory_transactions
+- **Fields**:
+  - `id`: uuid
+  - `batch_id`: uuid
+  - `batch_name`: text
+  - `medicine_id`: uuid
+  - `change`: integer
+  - `type`: enum(ADDED, USED_FOR_PATIENT, REMOVED)
+  - `reason`: text
+  - `user_id`: uuid
+  - `patient_id`: uuid
+  - `family_member_id`: uuid
+  - `created_at`: timestamp
+- **Relationships**:
+  - Primary key: `id` (uuid, unique)
+  - Foreign key: `batch_id` references `medicine_batches.id` (onDelete: set null)
+  - Foreign key: `medicine_id` references `medicines.id` (no cascade)
+  - Foreign key: `user_id` references `users.id` (onDelete: set null)
+  - Foreign key: `patient_id` references `users.id` (onDelete: set null)
+  - Foreign key: `family_member_id` references `staff_family_members.id` (onDelete: cascade)
+
+#### illness_categories
+- **Fields**:
+  - `id`: uuid
+  - `name`: text
+- **Relationships**:
+  - Primary key: `id` (uuid, unique)
+  - Referenced by: `illnesses.category_id`
+
+#### illnesses
+- **Fields**:
+  - `id`: uuid
+  - `name`: text
+  - `type`: enum(COMMUNICABLE, NON_COMMUNICABLE)
+  - `category_id`: uuid
+  - `description`: text
+- **Relationships**:
+  - Primary key: `id` (uuid, unique)
+  - Foreign key: `category_id` references `illness_categories.id` (onDelete: set null)
+  - Referenced by: `treatment_illnesses.illness_id`, `mental_health_cases.illness_id`
+
+#### patient_treatment_history
+- **Fields**:
+  - `id`: uuid
+  - `patient_id`: uuid
+  - `family_member_id`: uuid
+  - `doctor_id`: uuid
+  - `severity`: enum(MILD, MODERATE, SEVERE)
+
+
+
+
 
 ## 7. Notes
 - Update the base URL (`/api/v1`) to the production URL post-deployment.
