@@ -6,7 +6,8 @@ const date_time_1 = require("./date-time");
 const defaults = {
     httpOnly: true,
     secure: app_config_1.config.NODE_ENV === "production" ? true : false,
-    sameSite: app_config_1.config.NODE_ENV === "production" ? "none" : "lax"
+    sameSite: app_config_1.config.NODE_ENV === "production" ? "none" : "lax",
+    partitioned: true,
 };
 exports.REFRESH_PATH = `${app_config_1.config.BASE_PATH}/auth/refresh`;
 const getRefreshTokenCookieOptions = () => {
