@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.clearAuthenticationCookies = exports.setAuthenticationCookies = exports.getAccessTokenCookieOptions = exports.getRefreshTokenCookieOptions = exports.REFRESH_PATH = void 0;
+exports.clearAuthenticationCookies = exports.setAuthenticationCookies = exports.getAccessTokenCookieOptions = exports.getRefreshTokenCookieOptions = exports.ACCESS_PATH = exports.REFRESH_PATH = void 0;
 const app_config_1 = require("../../config/app.config");
 const date_time_1 = require("./date-time");
 const defaults = {
@@ -10,6 +10,7 @@ const defaults = {
     partitioned: true,
 };
 exports.REFRESH_PATH = `${app_config_1.config.BASE_PATH}/auth/refresh`;
+exports.ACCESS_PATH = `${app_config_1.config.BASE_PATH}/`;
 const getRefreshTokenCookieOptions = () => {
     const expiresIn = app_config_1.config.JWT.REFRESH_EXPIRES_IN;
     const expires = (0, date_time_1.calculateExpirationDate)(expiresIn);
@@ -19,7 +20,7 @@ exports.getRefreshTokenCookieOptions = getRefreshTokenCookieOptions;
 const getAccessTokenCookieOptions = () => {
     const expiresIn = app_config_1.config.JWT.EXPIRES_IN;
     const expires = (0, date_time_1.calculateExpirationDate)(expiresIn);
-    return Object.assign(Object.assign({}, defaults), { expires, path: "/" });
+    return Object.assign(Object.assign({}, defaults), { expires, path: exports.ACCESS_PATH });
 };
 exports.getAccessTokenCookieOptions = getAccessTokenCookieOptions;
 const setAuthenticationCookies = ({ res, accessToken, refreshToken, }) => res
