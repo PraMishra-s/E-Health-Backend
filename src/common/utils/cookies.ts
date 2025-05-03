@@ -9,9 +9,10 @@ type CookiesPayloadType = {
 }
 
 const defaults: CookieOptions = {
-    httpOnly: false,
+    httpOnly: true,
     secure: config.NODE_ENV === "production"? true: false,
     sameSite: config.NODE_ENV === "production"? "none": "lax",
+    domain: "https://e-health-backend.onrender.com",
     partitioned: true,
 }
 export const REFRESH_PATH = `${config.BASE_PATH}/auth/refresh`
