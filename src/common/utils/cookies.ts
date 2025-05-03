@@ -9,13 +9,12 @@ type CookiesPayloadType = {
 }
 
 const defaults: CookieOptions = {
-    httpOnly: false,
+    httpOnly: true,
     secure: config.NODE_ENV === "production"? true: false,
     sameSite: config.NODE_ENV === "production"? "none": "lax",
-    partitioned: true,
 }
 export const REFRESH_PATH = `${config.BASE_PATH}/auth/refresh`
-export const ACCESS_PATH = `${config.BASE_PATH}/auth/login`
+
 
 export const getRefreshTokenCookieOptions = (): CookieOptions => {
     const expiresIn = config.JWT.REFRESH_EXPIRES_IN;
@@ -33,7 +32,7 @@ export const getRefreshTokenCookieOptions = (): CookieOptions => {
     return {
       ...defaults,
       expires,
-      path: ACCESS_PATH,
+      path: "/",
     };
   };
   export const setAuthenticationCookies = ({
