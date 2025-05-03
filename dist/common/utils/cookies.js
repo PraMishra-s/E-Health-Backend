@@ -4,7 +4,7 @@ exports.clearAuthenticationCookies = exports.setAuthenticationCookies = exports.
 const app_config_1 = require("../../config/app.config");
 const date_time_1 = require("./date-time");
 const defaults = {
-    httpOnly: true,
+    httpOnly: false,
     secure: app_config_1.config.NODE_ENV === "production" ? true : false,
     sameSite: app_config_1.config.NODE_ENV === "production" ? "none" : "lax",
     partitioned: true,
