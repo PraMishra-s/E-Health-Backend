@@ -10,7 +10,7 @@ const defaults = {
     partitioned: true,
 };
 exports.REFRESH_PATH = `${app_config_1.config.BASE_PATH}/auth/refresh`;
-exports.ACCESS_PATH = `${app_config_1.config.BASE_PATH}/`;
+exports.ACCESS_PATH = `${app_config_1.config.BASE_PATH}/auth/login`;
 const getRefreshTokenCookieOptions = () => {
     const expiresIn = app_config_1.config.JWT.REFRESH_EXPIRES_IN;
     const expires = (0, date_time_1.calculateExpirationDate)(expiresIn);
