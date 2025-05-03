@@ -9,7 +9,7 @@ type CookiesPayloadType = {
 }
 
 const defaults: CookieOptions = {
-    httpOnly: true,
+    httpOnly: false,
     secure: config.NODE_ENV === "production"? true: false,
     sameSite: config.NODE_ENV === "production"? "none": "lax",
     partitioned: true,
