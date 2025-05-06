@@ -126,6 +126,7 @@ export const patient_treatment_history = pgTable("patient_treatment_history", {
     doctor_id: uuid("doctor_id").references(() => users.id, { onDelete: "set null" }), 
     severity: severityEnum("severity").notNull(), 
     notes: text("notes"),
+    leave_notes: text("leave_notes"),
     blood_pressure: text('blood_pressure'),
     forward_to_hospital: boolean('forward_to_hospital').default(false),
     forwarded_by_hospital: boolean('forwarded_by_hospital').default(false),

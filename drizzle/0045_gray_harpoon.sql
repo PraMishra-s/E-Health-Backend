@@ -1,0 +1,1 @@
+ALTER TABLE "patient_treatment_history" ADD COLUMN "leave_notes" text;

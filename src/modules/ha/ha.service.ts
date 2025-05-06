@@ -179,13 +179,14 @@ export class HaService{
             await db
             .update(ha_details)
             .set({ is_onLeave: false, is_available: true })
-            .where(eq(ha_availability.ha_id, userId));
+            .where(eq(ha_details.ha_id, userId));
 
 
             await db
             .update(ha_availability)
             .set({ processed: true })
             .where(eq(ha_availability.ha_id, userId));
+            console.log("updated the ha_availability table");
 
             await redis.del(`ha:leave`);
             const availabilityKey = `ha:available`;
@@ -194,7 +195,7 @@ export class HaService{
             return;
         } catch (error) {
             throw new InternalServerException(
-                "Error while updating the HA_details and HA_availability table",
+                `Failed to cancel Leave as ${error}`,
                 ErrorCode.INTERNAL_SERVER_ERROR
             )
         }

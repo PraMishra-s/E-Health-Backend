@@ -330,8 +330,6 @@ export class InventoryService{
         }
     }
     public async deleteBatchById(userId: string, batch_id: string) {
-        console.log(`this is batch_id : ${batch_id}`)
-        // ✅ Fetch the batch details
         const [batch] = await db
             .select({ medicine_id: medicine_batches.medicine_id, quantity: medicine_batches.quantity, batch_name: medicine_batches.batch_name})
             .from(medicine_batches)
