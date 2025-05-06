@@ -319,8 +319,6 @@ class InventoryService {
     }
     deleteBatchById(userId, batch_id) {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log(`this is batch_id : ${batch_id}`);
-            // ✅ Fetch the batch details
             const [batch] = yield drizzle_1.db
                 .select({ medicine_id: schema_1.medicine_batches.medicine_id, quantity: schema_1.medicine_batches.quantity, batch_name: schema_1.medicine_batches.batch_name })
                 .from(schema_1.medicine_batches)

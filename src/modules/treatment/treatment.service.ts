@@ -314,8 +314,7 @@ export class TreatmentService{
         patientName: users.name,
         patientGender: users.gender,
         studentNumber: users.student_id,
-        patientType: sql`'PATIENT'` // Simplify since we're only looking at students
-        // Medicines and illnesses removed
+        patientType: sql`'PATIENT'`
       })
       .from(patient_treatment_history)
       .leftJoin(users, eq(users.id, patient_treatment_history.patient_id))

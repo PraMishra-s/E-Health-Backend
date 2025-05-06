@@ -149,18 +149,19 @@ class HaService {
                 yield drizzle_1.db
                     .update(schema_1.ha_details)
                     .set({ is_onLeave: false, is_available: true })
-                    .where((0, drizzle_orm_1.eq)(schema_1.ha_availability.ha_id, userId));
+                    .where((0, drizzle_orm_1.eq)(schema_1.ha_details.ha_id, userId));
                 yield drizzle_1.db
                     .update(schema_1.ha_availability)
                     .set({ processed: true })
                     .where((0, drizzle_orm_1.eq)(schema_1.ha_availability.ha_id, userId));
+                console.log("updated the ha_availability table");
                 yield redis_service_1.default.del(`ha:leave`);
                 const availabilityKey = `ha:available`;
                 yield redis_service_1.default.set(availabilityKey, JSON.stringify({ is_available: true }));
                 return;
             }
             catch (error) {
-                throw new catch_errors_1.InternalServerException("Error while updating the HA_details and HA_availability table", "INTERNAL_SERVER_ERROR" /* ErrorCode.INTERNAL_SERVER_ERROR */);
+                throw new catch_errors_1.InternalServerException(`Failed to cancel Leave as ${error}`, "INTERNAL_SERVER_ERROR" /* ErrorCode.INTERNAL_SERVER_ERROR */);
             }
         });
     }

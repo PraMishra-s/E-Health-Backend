@@ -17,7 +17,7 @@ const drizzle_orm_1 = require("drizzle-orm");
 class TreatmentService {
     addTreatment(userId, data) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { patient_id, family_member_id, illness_ids, severity, notes, medicines, blood_pressure, forward_to_hospital, forwarded_by_hospital } = data;
+            const { patient_id, family_member_id, illness_ids, severity, notes, leave_notes, medicines, blood_pressure, forward_to_hospital, forwarded_by_hospital } = data;
             if (!patient_id && !family_member_id) {
                 throw new catch_errors_1.BadRequestException("Either patient_id or family_member_id is required.");
             }
@@ -31,6 +31,7 @@ class TreatmentService {
                 doctor_id: userId,
                 severity,
                 notes,
+                leave_notes: leave_notes || null,
                 blood_pressure: blood_pressure || null,
                 forward_to_hospital: forward_to_hospital || false,
                 forwarded_by_hospital: forwarded_by_hospital || false
@@ -101,6 +102,7 @@ class TreatmentService {
                 doctorId: schema_1.patient_treatment_history.doctor_id,
                 severity: schema_1.patient_treatment_history.severity,
                 notes: schema_1.patient_treatment_history.notes,
+                leaveNotes: schema_1.patient_treatment_history.leave_notes,
                 bloodPressue: schema_1.patient_treatment_history.blood_pressure,
                 forwardedToHospital: schema_1.patient_treatment_history.forward_to_hospital,
                 forwardedByHospital: schema_1.patient_treatment_history.forwarded_by_hospital,
@@ -187,6 +189,7 @@ class TreatmentService {
                 doctorId: schema_1.patient_treatment_history.doctor_id,
                 severity: schema_1.patient_treatment_history.severity,
                 notes: schema_1.patient_treatment_history.notes,
+                leaveNotes: schema_1.patient_treatment_history.leave_notes,
                 bloodPressue: schema_1.patient_treatment_history.blood_pressure,
                 forwardedToHospital: schema_1.patient_treatment_history.forward_to_hospital,
                 forwardedByHospital: schema_1.patient_treatment_history.forwarded_by_hospital,
@@ -285,13 +288,13 @@ class TreatmentService {
                 doctorId: schema_1.patient_treatment_history.doctor_id,
                 severity: schema_1.patient_treatment_history.severity,
                 notes: schema_1.patient_treatment_history.notes,
+                leaveNotes: schema_1.patient_treatment_history.leave_notes,
                 createdAt: schema_1.patient_treatment_history.created_at,
                 departmentId: (0, drizzle_orm_1.sql) `COALESCE(${schema_1.users.department_id}, NULL)`,
                 patientName: schema_1.users.name,
                 patientGender: schema_1.users.gender,
                 studentNumber: schema_1.users.student_id,
-                patientType: (0, drizzle_orm_1.sql) `'PATIENT'` // Simplify since we're only looking at students
-                // Medicines and illnesses removed
+                patientType: (0, drizzle_orm_1.sql) `'PATIENT'`
             })
                 .from(schema_1.patient_treatment_history)
                 .leftJoin(schema_1.users, (0, drizzle_orm_1.eq)(schema_1.users.id, schema_1.patient_treatment_history.patient_id))
@@ -310,6 +313,7 @@ class TreatmentService {
                 doctor_id: schema_1.patient_treatment_history.doctor_id,
                 severity: schema_1.patient_treatment_history.severity,
                 notes: schema_1.patient_treatment_history.notes,
+                leaveNotes: schema_1.patient_treatment_history.leave_notes,
                 created_at: schema_1.patient_treatment_history.created_at,
                 medicines: (0, drizzle_orm_1.sql) `json_agg(json_build_object(
             'medicine_id', treatment_medicines.medicine_id,

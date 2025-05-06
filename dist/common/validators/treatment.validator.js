@@ -9,6 +9,7 @@ exports.createTreatmentSchema = zod_1.z.object({
     illness_ids: zod_1.z.array(inventory_validator_1.uuidSchema),
     severity: zod_1.z.enum(["MILD", "MODERATE", "SEVERE"]),
     notes: zod_1.z.string().max(500).optional(),
+    leave_notes: zod_1.z.string().max(500).optional(),
     blood_pressure: zod_1.z.string().optional(),
     forward_to_hospital: zod_1.z.boolean().optional(),
     forwarded_by_hospital: zod_1.z.boolean().optional(),

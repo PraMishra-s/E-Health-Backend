@@ -120,6 +120,7 @@ exports.patient_treatment_history = (0, pg_core_1.pgTable)("patient_treatment_hi
     doctor_id: (0, pg_core_1.uuid)("doctor_id").references(() => exports.users.id, { onDelete: "set null" }),
     severity: (0, exports.severityEnum)("severity").notNull(),
     notes: (0, pg_core_1.text)("notes"),
+    leave_notes: (0, pg_core_1.text)("leave_notes"),
     blood_pressure: (0, pg_core_1.text)('blood_pressure'),
     forward_to_hospital: (0, pg_core_1.boolean)('forward_to_hospital').default(false),
     forwarded_by_hospital: (0, pg_core_1.boolean)('forwarded_by_hospital').default(false),
