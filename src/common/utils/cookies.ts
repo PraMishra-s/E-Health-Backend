@@ -11,7 +11,7 @@ type CookiesPayloadType = {
 const defaults: CookieOptions = {
     httpOnly: true,
     secure: config.NODE_ENV === "production"? true: false,
-    sameSite: config.NODE_ENV === "production"? "none": "lax",
+    sameSite: config.NODE_ENV === "production"? "lax": "lax",
 }
 export const REFRESH_PATH = `${config.BASE_PATH}/auth/refresh`
 
