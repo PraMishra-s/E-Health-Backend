@@ -44,6 +44,7 @@ app.use(express.json())
 app.use(express.urlencoded({extended: true}))
 app.use(cors({
     origin: config.APP_ORIGIN,
+    // origin: "http://10.2.23.88:3000",
     credentials: true
 }))
 app.use(helmet())
@@ -84,7 +85,7 @@ initSocket(server);
 
 
 
-server.listen(config.PORT,async () => {
+server.listen(Number(config.PORT),'0.0.0.0',async () => {
     console.log(`Server is running on port ${config.PORT}`);
 });
 

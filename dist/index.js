@@ -49,7 +49,8 @@ const BASE_PATH = app_config_1.config.BASE_PATH;
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use((0, cors_1.default)({
-    origin: app_config_1.config.APP_ORIGIN,
+    // origin: config.APP_ORIGIN,
+    origin: "http://10.2.23.88:3000",
     credentials: true
 }));
 app.use((0, helmet_1.default)());
@@ -79,6 +80,6 @@ app.use(`${BASE_PATH}/notifications`, notification_route_1.default);
 app.use(errorHandler_1.errorHandler);
 const server = http_1.default.createServer(app);
 (0, socket_manager_1.initSocket)(server);
-server.listen(app_config_1.config.PORT, () => __awaiter(void 0, void 0, void 0, function* () {
+server.listen(Number(app_config_1.config.PORT), '0.0.0.0', () => __awaiter(void 0, void 0, void 0, function* () {
     console.log(`Server is running on port ${app_config_1.config.PORT}`);
 }));
