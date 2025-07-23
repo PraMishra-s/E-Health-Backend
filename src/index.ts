@@ -59,7 +59,7 @@ app.get(
     "/",
     asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
         res.status(HTTPSTATUS.OK).json({
-            message: "BasePoint",
+            message: "BasePoint 1111",
         });
     })
 )
@@ -85,7 +85,7 @@ initSocket(server);
 
 
 
-server.listen(Number(config.PORT),'0.0.0.0',async () => {
+server.listen(config.PORT,async () => {
     console.log(`Server is running on port ${config.PORT}`);
 });
 
